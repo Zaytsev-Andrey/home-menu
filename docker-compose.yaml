@@ -1,0 +1,22 @@
+services:
+
+  recipe-service-db:
+    image: postgres:17.9
+    container_name: recipe-service-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: recipe_service_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - recipe_service_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d password"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  recipe_service_db_data:

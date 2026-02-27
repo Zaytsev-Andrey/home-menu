@@ -1,0 +1,56 @@
+plugins {
+    alias(libs.plugins.springframework.boot) apply false
+}
+
+
+
+
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: libs.plugins.springframework.boot.get().pluginId
+    apply plugin: libs.plugins.dependency.management.get().pluginId
+
+    group = 'ru.homemenu'
+    version = '0.0.1'
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(25)
+        }
+    }
+
+    configurations {
+        compileOnly {
+            extendsFrom annotationProcessor
+        }
+    }
+
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        implementation libs.spring.boot.starter.webmvc
+        implementation libs.spring.boot.starter.data.jdbc
+        implementation libs.spring.boot.starter.liquibase
+
+        compileOnly libs.lombok
+
+        runtimeOnly libs.postgresql
+
+        annotationProcessor libs.lombok
+
+        testImplementation libs.spring.boot.starter.data.jdbc.test
+        testImplementation libs.spring.boot.starter.webmvc.test
+
+        testRuntimeOnly libs.junit.platform.launcher
+    }
+
+    tasks.named('test') {
+        useJUnitPlatform()
+    }
+}
+
+
