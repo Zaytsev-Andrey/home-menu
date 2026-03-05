@@ -3,3 +3,18 @@ spring:
     url: jdbc:postgresql://localhost:5432/recipe_service_db
     username: postgres
     password: password
+
+  data:
+    web:
+      pageable:
+        max-page-size: 200
+
+  jackson:
+    default-property-inclusion: non_null
+
+app:
+  http-error-message:
+    constraints:
+      uc_recipe_title:
+        title: must be unique
+    unknown-constraint-message: Constraint violation error

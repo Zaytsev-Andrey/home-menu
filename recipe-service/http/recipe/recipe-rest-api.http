@@ -1,0 +1,13 @@
+### Find all Recipes
+GET http://localhost:8080/api/v1/recipes?size=300
+Accept: application/json
+
+### Create Recipe
+POST http://localhost:8080/api/v1/recipes
+Content-Type: application/json
+
+{
+    "title": "Tea",
+    "description": "Boil water..."
+}
+
