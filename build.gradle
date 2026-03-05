@@ -33,19 +33,27 @@ subprojects {
 
     dependencies {
         implementation libs.spring.boot.starter.webmvc
-        implementation libs.spring.boot.starter.data.jdbc
+        implementation libs.spring.boot.starter.validation
+        implementation libs.spring.boot.starter.data.jpa
         implementation libs.spring.boot.starter.liquibase
+        implementation libs.mapstruct
 
         compileOnly libs.lombok
 
         runtimeOnly libs.postgresql
 
+        annotationProcessor libs.mapstruct.processor
         annotationProcessor libs.lombok
+        annotationProcessor libs.lombok.mapstruct.binding
 
-        testImplementation libs.spring.boot.starter.data.jdbc.test
+        testImplementation libs.spring.boot.starter.data.jpa.test
         testImplementation libs.spring.boot.starter.webmvc.test
 
         testRuntimeOnly libs.junit.platform.launcher
+
+        testCompileOnly libs.lombok
+
+        testAnnotationProcessor libs.lombok
     }
 
     tasks.named('test') {

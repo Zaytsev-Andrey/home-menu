@@ -1,0 +1,5 @@
+app:
+  http-error-message:
+    constraints:
+      uc_title:
+        title: must be unique

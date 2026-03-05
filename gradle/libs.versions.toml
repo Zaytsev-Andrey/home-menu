@@ -1,6 +1,8 @@
 [versions]
 springframework-boot = '4.0.3'
 dependency-management = '1.1.7'
+mapstruct = '1.6.3'
+lombok-mapstruct-binding = '0.2.0'
 
 [plugins]
 springframework-boot = { id = 'org.springframework.boot', version.ref = 'springframework-boot' }
@@ -8,10 +10,14 @@ dependency-management = { id = 'io.spring.dependency-management', version.ref = 
 
 [libraries]
 spring-boot-starter-webmvc = { module = 'org.springframework.boot:spring-boot-starter-webmvc' }
-spring-boot-starter-data-jdbc = { module = 'org.springframework.boot:spring-boot-starter-data-jdbc' }
+spring-boot-starter-validation = { module = 'org.springframework.boot:spring-boot-starter-validation' }
+spring-boot-starter-data-jpa = { module = 'org.springframework.boot:spring-boot-starter-data-jpa' }
 spring-boot-starter-liquibase = { module = 'org.springframework.boot:spring-boot-starter-liquibase'}
 postgresql = { module = 'org.postgresql:postgresql' }
+mapstruct = { module = 'org.mapstruct:mapstruct', version.ref = 'mapstruct' }
+mapstruct-processor = { module = 'org.mapstruct:mapstruct-processor', version.ref = 'mapstruct' }
 lombok = { module = 'org.projectlombok:lombok' }
-spring-boot-starter-data-jdbc-test = { module = 'org.springframework.boot:spring-boot-starter-data-jdbc-test' }
+lombok-mapstruct-binding = { module = 'org.projectlombok:lombok-mapstruct-binding', version.ref = 'lombok-mapstruct-binding' }
+spring-boot-starter-data-jpa-test = { module = 'org.springframework.boot:spring-boot-starter-data-jpa-test' }
 spring-boot-starter-webmvc-test = { module = 'org.springframework.boot:spring-boot-starter-webmvc-test' }
 junit-platform-launcher = { module = 'org.junit.platform:junit-platform-launcher' }
