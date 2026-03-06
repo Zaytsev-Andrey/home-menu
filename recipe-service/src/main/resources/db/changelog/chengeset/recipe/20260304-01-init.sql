@@ -1,6 +1,6 @@
 -- liquibase formatted sql
 
--- changeset a.zaytsev:1772627269459-1
+-- changeset a.zaytsev:1
 CREATE TABLE recipe
 (
     id          UUID                        NOT NULL,

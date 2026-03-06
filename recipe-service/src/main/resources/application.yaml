@@ -1,4 +1,7 @@
 spring:
+  application:
+    name: "${name}"
+
   datasource:
     url: jdbc:postgresql://localhost:5432/recipe_service_db
     username: postgres
@@ -11,6 +14,15 @@ spring:
 
   jackson:
     default-property-inclusion: non_null
+
+logging:
+  structured:
+    format:
+      console: ecs
+    ecs:
+      service:
+        name: "${name}"
+        version: "${version}"
 
 app:
   http-error-message:

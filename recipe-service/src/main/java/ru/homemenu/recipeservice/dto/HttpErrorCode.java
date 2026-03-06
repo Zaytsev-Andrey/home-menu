@@ -1,7 +1,8 @@
 package ru.homemenu.recipeservice.dto;
 
 public enum HttpErrorCode {
-    CONSTRAINT_VIOLATION_ERROR,
+    CONSTRAINT_VIOLATION,
     JSON_PARSE_ERROR,
-    VALIDATION_ERROR
+    REQUEST_VALIDATION_FAILED,
+    UNEXPECTED_ERROR
 }

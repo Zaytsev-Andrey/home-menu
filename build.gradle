@@ -2,23 +2,11 @@ plugins {
     alias(libs.plugins.springframework.boot) apply false
 }
 
-
-
-
-
 subprojects {
     apply plugin: 'java'
-    apply plugin: libs.plugins.springframework.boot.get().pluginId
-    apply plugin: libs.plugins.dependency.management.get().pluginId
 
     group = 'ru.homemenu'
     version = '0.0.1'
-
-    java {
-        toolchain {
-            languageVersion = JavaLanguageVersion.of(25)
-        }
-    }
 
     configurations {
         compileOnly {
@@ -26,9 +14,20 @@ subprojects {
         }
     }
 
-
     repositories {
         mavenCentral()
+    }
+
+}
+
+project(":recipe-service") {
+    apply plugin: libs.plugins.springframework.boot.get().pluginId
+    apply plugin: libs.plugins.dependency.management.get().pluginId
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(25)
+        }
     }
 
     dependencies {
@@ -58,6 +57,14 @@ subprojects {
 
     tasks.named('test') {
         useJUnitPlatform()
+    }
+
+    springBoot {
+        buildInfo()
+    }
+
+    tasks.named('processResources') {
+        expand(project.properties)
     }
 }
 

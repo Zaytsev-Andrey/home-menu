@@ -33,7 +33,7 @@ class RecipeControllerValidationTest extends WebTestBase {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.status").value("400"))
-                .andExpect(jsonPath("$.errorCode").value(HttpErrorCode.VALIDATION_ERROR.toString()))
+                .andExpect(jsonPath("$.errorCode").value(HttpErrorCode.REQUEST_VALIDATION_FAILED.toString()))
                 .andExpect(jsonPath("$.errors", aMapWithSize(2)))
                 .andExpect(jsonPath("$.errors", hasKey("title")))
                 .andExpect(jsonPath("$.errors", hasKey("description")))

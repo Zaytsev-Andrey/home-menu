@@ -37,7 +37,7 @@ class RestControllerExceptionHandlerWebTest extends WebTestBase {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.errorCode").value(HttpErrorCode.VALIDATION_ERROR.toString()))
+                .andExpect(jsonPath("$.errorCode").value(HttpErrorCode.REQUEST_VALIDATION_FAILED.toString()))
                 .andExpect(jsonPath("$.errors", aMapWithSize(1)))
                 .andExpect(jsonPath("$.errors", hasKey("title")))
                 .andExpect(jsonPath("$.path").value("/test/validations"));
@@ -59,7 +59,7 @@ class RestControllerExceptionHandlerWebTest extends WebTestBase {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.status").value(409))
-                .andExpect(jsonPath("$.errorCode").value(HttpErrorCode.CONSTRAINT_VIOLATION_ERROR.toString()))
+                .andExpect(jsonPath("$.errorCode").value(HttpErrorCode.CONSTRAINT_VIOLATION.toString()))
                 .andExpect(jsonPath("$.errors", aMapWithSize(1)))
                 .andExpect(jsonPath("$.errors", hasKey(errorFieldName)))
                 .andExpect(jsonPath("$.errors", hasValue(Collections.singletonList(errorMessage))))
@@ -80,7 +80,7 @@ class RestControllerExceptionHandlerWebTest extends WebTestBase {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.status").value(409))
-                .andExpect(jsonPath("$.errorCode").value(HttpErrorCode.CONSTRAINT_VIOLATION_ERROR.toString()))
+                .andExpect(jsonPath("$.errorCode").value(HttpErrorCode.CONSTRAINT_VIOLATION.toString()))
                 .andExpect(jsonPath("$.error").value(unknownConstraintMessage))
                 .andExpect(jsonPath("$.path").value("/test/constraints"));
     }

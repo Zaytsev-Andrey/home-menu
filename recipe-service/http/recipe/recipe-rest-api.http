@@ -1,6 +1,7 @@
 ### Find all Recipes
 GET http://localhost:8080/api/v1/recipes?size=300
 Accept: application/json
+X-Request-ID: 18d39335-e5a9-4b7f-97d9-a4a03315a000
 
 ### Create Recipe
 POST http://localhost:8080/api/v1/recipes
