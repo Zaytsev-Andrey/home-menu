@@ -3,12 +3,14 @@ springframework-boot = '4.0.3'
 dependency-management = '1.1.7'
 mapstruct = '1.6.3'
 lombok-mapstruct-binding = '0.2.0'
+loki-logback-appender = '2.0.3'
 
 [plugins]
 springframework-boot = { id = 'org.springframework.boot', version.ref = 'springframework-boot' }
 dependency-management = { id = 'io.spring.dependency-management', version.ref = 'dependency-management' }
 
 [libraries]
+spring-boot-starter-actuator = { module = 'org.springframework.boot:spring-boot-starter-actuator' }
 spring-boot-starter-webmvc = { module = 'org.springframework.boot:spring-boot-starter-webmvc' }
 spring-boot-starter-validation = { module = 'org.springframework.boot:spring-boot-starter-validation' }
 spring-boot-starter-data-jpa = { module = 'org.springframework.boot:spring-boot-starter-data-jpa' }
@@ -18,6 +20,9 @@ mapstruct = { module = 'org.mapstruct:mapstruct', version.ref = 'mapstruct' }
 mapstruct-processor = { module = 'org.mapstruct:mapstruct-processor', version.ref = 'mapstruct' }
 lombok = { module = 'org.projectlombok:lombok' }
 lombok-mapstruct-binding = { module = 'org.projectlombok:lombok-mapstruct-binding', version.ref = 'lombok-mapstruct-binding' }
+loki-logback-appender = { module = 'com.github.loki4j:loki-logback-appender', version.ref = 'loki-logback-appender' }
+spring-boot-starter-actuator-test = { module = 'org.springframework.boot:spring-boot-starter-actuator-test' }
 spring-boot-starter-data-jpa-test = { module = 'org.springframework.boot:spring-boot-starter-data-jpa-test' }
 spring-boot-starter-webmvc-test = { module = 'org.springframework.boot:spring-boot-starter-webmvc-test' }
 junit-platform-launcher = { module = 'org.junit.platform:junit-platform-launcher' }
+micrometer-registry-prometheus = { module = 'io.micrometer:micrometer-registry-prometheus' }

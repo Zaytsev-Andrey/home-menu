@@ -31,20 +31,24 @@ project(":recipe-service") {
     }
 
     dependencies {
+        implementation libs.spring.boot.starter.actuator
         implementation libs.spring.boot.starter.webmvc
         implementation libs.spring.boot.starter.validation
         implementation libs.spring.boot.starter.data.jpa
         implementation libs.spring.boot.starter.liquibase
         implementation libs.mapstruct
+        implementation libs.loki.logback.appender
 
         compileOnly libs.lombok
 
         runtimeOnly libs.postgresql
+        runtimeOnly libs.micrometer.registry.prometheus
 
         annotationProcessor libs.mapstruct.processor
         annotationProcessor libs.lombok
         annotationProcessor libs.lombok.mapstruct.binding
 
+        testImplementation libs.spring.boot.starter.actuator.test
         testImplementation libs.spring.boot.starter.data.jpa.test
         testImplementation libs.spring.boot.starter.webmvc.test
 

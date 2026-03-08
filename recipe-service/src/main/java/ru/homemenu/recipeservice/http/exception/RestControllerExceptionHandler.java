@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -11,6 +12,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import ru.homemenu.recipeservice.config.property.HttpErrorMessageProperty;
 import ru.homemenu.recipeservice.dto.HttpErrorCode;
 import ru.homemenu.recipeservice.dto.HttpErrorResponse;
@@ -57,15 +59,15 @@ public class RestControllerExceptionHandler {
                 .body(httpErrorResponse);
     }
 
-    @ExceptionHandler(ConstraintViolationException.class)
-    ResponseEntity<HttpErrorResponse> handleConstraintViolationException(ConstraintViolationException ex, HttpServletRequest request) {
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    ResponseEntity<HttpErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException ex, HttpServletRequest request) {
         HttpErrorResponse.HttpErrorResponseBuilder errorResponseBuilder = HttpErrorResponse.builder()
                 .timestamp(Instant.now())
                 .status(HttpStatus.CONFLICT.value())
                 .errorCode(HttpErrorCode.CONSTRAINT_VIOLATION)
                 .path(URI.create(request.getRequestURI()));
 
-        String constraintName = ex.getConstraintName();
+        String constraintName = getConstraintName(ex);
         Map<String, List<String>> errors = httpErrorMessageProperty.constraints().get(constraintName);
         if (errors != null) {
             errorResponseBuilder.errors(errors);
@@ -81,6 +83,34 @@ public class RestControllerExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(errorResponseBuilder.build());
+    }
+
+    private String getConstraintName(DataIntegrityViolationException ex) {
+        String constraintName = null;
+        if (ex.getCause() instanceof ConstraintViolationException constraintViolationException) {
+            constraintName = constraintViolationException.getConstraintName();
+        }
+
+        return constraintName;
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    ResponseEntity<HttpErrorResponse> handleNoResourceFoundException(NoResourceFoundException ex, HttpServletRequest request) {
+        HttpErrorResponse httpErrorResponse = HttpErrorResponse.builder()
+                .timestamp(Instant.now())
+                .status(HttpStatus.NOT_FOUND.value())
+                .errorCode(HttpErrorCode.RESOURCE_NOT_FOUND)
+                .error("Resource not found")
+                .path(URI.create(request.getRequestURI()))
+                .build();
+
+        log.atWarn()
+                .addKeyValue(StructuredLogField.EVENT, StructuredLogEvent.RESOURCE_NOT_FOUND)
+                .addKeyValue(StructuredLogField.ERROR_CODE, HttpErrorCode.RESOURCE_NOT_FOUND)
+                .log("Resource not found");
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(httpErrorResponse);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -114,7 +144,6 @@ public class RestControllerExceptionHandler {
                 .path(URI.create(request.getRequestURI()))
                 .build();
 
-//        log.error("Internal server error", ex);
         log.atError()
                 .addKeyValue(StructuredLogField.EVENT, StructuredLogEvent.UNEXPECTED_ERROR)
                 .addKeyValue(StructuredLogField.ERROR_CODE, HttpErrorCode.UNEXPECTED_ERROR)

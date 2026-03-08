@@ -1,0 +1,35 @@
+<configuration>
+
+    <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
+        <http>
+            <url>http://localhost:3100/loki/api/v1/push</url>
+        </http>
+
+        <labels>
+            app=${name}
+            host=\${HOSTNAME}
+            level=%level
+        </labels>
+
+        <structuredMetadata>
+            traceId=%X{traceId}
+            spanId=%X{spanId}
+            requestId=%X{requestId}
+            httpMethod=%X{httpMethod}
+            path=%X{path}
+            logger=%logger
+            thread=%thread
+        </structuredMetadata>
+
+        <message class="com.github.loki4j.logback.JsonLayout"/>
+    </appender>
+
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="LOKI"/>
+    </root>
+
+</configuration>
