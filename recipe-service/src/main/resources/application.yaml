@@ -15,15 +15,6 @@ spring:
   jackson:
     default-property-inclusion: non_null
 
-logging:
-  structured:
-    format:
-      console: ecs
-    ecs:
-      service:
-        name: "${name}"
-        version: "${version}"
-
 management:
   endpoints:
     web:
@@ -32,6 +23,15 @@ management:
   endpoint:
     health:
       show-details: always
+
+logging:
+  structured:
+    format:
+      console: ecs
+    ecs:
+      service:
+        name: "${name}"
+        version: "${version}"
 
 app:
   http-error-message:

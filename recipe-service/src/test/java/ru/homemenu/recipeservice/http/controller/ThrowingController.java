@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.context.annotation.Profile;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +20,8 @@ public class ThrowingController {
 
     @GetMapping("/constraints")
     void  testConstraint(@RequestParam @NotBlank String constraintName) {
-        throw new ConstraintViolationException("Error message", new SQLException(), constraintName);
+        ConstraintViolationException cause = new ConstraintViolationException("Error message", new SQLException(), constraintName);
+        throw new DataIntegrityViolationException("Data integrity violation exception",  cause);
     }
 
     @PostMapping("/validations")
