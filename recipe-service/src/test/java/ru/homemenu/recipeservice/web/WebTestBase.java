@@ -11,8 +11,6 @@ import ru.homemenu.recipeservice.recipe.service.RecipeService;
 @ActiveProfiles("test")
 @Getter
 @WebMvcTest
-//@Import(RestControllerExceptionHandlerWebTest)
-//@EnableConfigurationProperties(HttpErrorMessageProperty.class)
 public abstract class WebTestBase {
 
     @MockitoBean

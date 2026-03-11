@@ -4,6 +4,7 @@ dependency-management = '1.1.7'
 mapstruct = '1.6.3'
 lombok-mapstruct-binding = '0.2.0'
 loki-logback-appender = '2.0.3'
+testcontainers-postgresql = '1.21.4'
 
 [plugins]
 springframework-boot = { id = 'org.springframework.boot', version.ref = 'springframework-boot' }
@@ -21,6 +22,7 @@ mapstruct-processor = { module = 'org.mapstruct:mapstruct-processor', version.re
 lombok = { module = 'org.projectlombok:lombok' }
 lombok-mapstruct-binding = { module = 'org.projectlombok:lombok-mapstruct-binding', version.ref = 'lombok-mapstruct-binding' }
 loki-logback-appender = { module = 'com.github.loki4j:loki-logback-appender', version.ref = 'loki-logback-appender' }
+testcontainers-postgresql = { module = 'org.testcontainers:postgresql', version.ref = 'testcontainers-postgresql' }
 spring-boot-starter-actuator-test = { module = 'org.springframework.boot:spring-boot-starter-actuator-test' }
 spring-boot-starter-data-jpa-test = { module = 'org.springframework.boot:spring-boot-starter-data-jpa-test' }
 spring-boot-starter-webmvc-test = { module = 'org.springframework.boot:spring-boot-starter-webmvc-test' }

@@ -1,6 +1,6 @@
 services:
 
-  recipe-service-db:
+  postgres:
     image: postgres:17.9
     container_name: recipe-service-db
     restart: unless-stopped
@@ -38,12 +38,48 @@ services:
       timeout: 5s
       retries: 20
 
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:v1.103.0
+    container_name: victoriametrics
+    restart: unless-stopped
+    ports:
+      - "8428:8428"
+    command:
+      - "--storageDataPath=/storage"
+      - "--retentionPeriod=7"
+    volumes:
+      - victoriametrics_data:/storage
+    networks:
+      - observability
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q --spider http://localhost:8428/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  vmagent:
+    image: victoriametrics/vmagent:v1.103.0
+    container_name: vmagent
+    restart: unless-stopped
+    depends_on:
+      victoriametrics:
+        condition: service_healthy
+    command:
+      - "-promscrape.config=/etc/prometheus/prometheus.yaml"
+      - "-remoteWrite.url=http://victoriametrics:8428/api/v1/write"
+    volumes:
+      - ./docker/vmagent/config/prometheus.yaml:/etc/prometheus/prometheus.yaml
+    networks:
+      - observability
+
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
     restart: unless-stopped
     depends_on:
       loki:
+        condition: service_healthy
+      victoriametrics:
         condition: service_healthy
     ports:
       - "3000:3000"
@@ -65,6 +101,7 @@ services:
 volumes:
   recipe_service_db_data:
   loki_data:
+  victoriametrics_data:
   grafana_data:
 
 networks:
