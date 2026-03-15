@@ -38,4 +38,13 @@ app:
     constraints:
       uc_recipe_title:
         title: must be unique
+      uc_ingredient_title:
+        title: must be unique
+      uc_recipe_ingredient_recipe_ingredient:
+        ingredient: ingredient already exists in recipe
+      chk_recipe_ingredient_quantity_positive:
+        quantity: must be positive
     unknown-constraint-message: Constraint violation error
+
+  recipe:
+    max-recipe-ingredients: 200

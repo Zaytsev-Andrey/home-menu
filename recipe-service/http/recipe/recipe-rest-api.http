@@ -8,7 +8,36 @@ POST http://localhost:8080/api/v1/recipes
 Content-Type: application/json
 
 {
-    "title": "Tea",
-    "description": "Boil water..."
+    "title": "Black Coffee",
+    "description": "Boil milk...",
+    "recipeIngredientDtos": [
+      {
+        "ingredientId": "9b39f2bd-2ce7-442c-9b21-746714b30a52",
+        "quantity": 2
+      }
+    ]
 }
 
+### Update Recipe
+PUT http://localhost:8080/api/v1/recipes/21314ead-c39d-4551-8740-89de0fd3f46d
+Content-Type: application/json
+
+{
+    "version": 13,
+    "title": "Black-Coffee",
+    "description": "Boil water...",
+    "recipeIngredientDtos": [
+      {
+        "ingredientId": "9b39f2bd-2ce7-442c-9b21-746714b30a51",
+        "quantity": 2
+      },
+      {
+        "ingredientId": "9b39f2bd-2ce7-442c-9b21-746714b30a52",
+        "quantity": 3
+      }
+    ]
+}
+
+
+### Delete Recipe
+DELETE http://localhost:8080/api/v1/recipes/21314ead-c39d-4551-8740-89de0fd3f46d

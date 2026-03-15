@@ -3,6 +3,7 @@ package ru.homemenu.recipeservice.recipe.dto;
 import lombok.Builder;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Builder
@@ -14,6 +15,7 @@ public record RecipeReadDto(
         String updatedBy,
         Long version,
         String title,
-        String description
+        String description,
+        List<RecipeIngredientReadDto> recipeIngredientDtos
 ) {
 }

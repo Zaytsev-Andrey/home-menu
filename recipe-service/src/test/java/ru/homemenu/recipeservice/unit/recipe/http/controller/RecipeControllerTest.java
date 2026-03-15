@@ -82,13 +82,10 @@ class RecipeControllerTest {
     @Test
     void save() {
         RecipeCreateDto recipeCreateDto = RecipeCreateDto.builder().build();
-        Recipe recipe = Recipe.builder().build();
         Recipe savedRecipe = Recipe.builder().build();
         RecipeReadDto recipeReadDto = RecipeReadDto.builder().build();
-        doReturn(recipe)
-                .when(recipeMapper).toEntity(recipeCreateDto);
         doReturn(savedRecipe)
-                .when(recipeService).save(recipe);
+                .when(recipeService).save(recipeCreateDto);
         doReturn(recipeReadDto)
                 .when(recipeMapper).toDto(savedRecipe);
 
@@ -96,8 +93,7 @@ class RecipeControllerTest {
 
         assertThat(result.data()).isEqualTo(recipeReadDto);
 
-        verify(recipeMapper, Mockito.times(1)).toEntity(recipeCreateDto);
-        verify(recipeService, Mockito.times(1)).save(recipe);
+        verify(recipeService, Mockito.times(1)).save(recipeCreateDto);
         verify(recipeMapper, Mockito.times(1)).toDto(savedRecipe);
         verifyNoMoreInteractions(recipeMapper, recipeService);
     }
