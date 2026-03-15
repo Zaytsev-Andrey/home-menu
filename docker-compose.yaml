@@ -73,7 +73,7 @@ services:
       - observability
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:12.3
     container_name: grafana
     restart: unless-stopped
     depends_on:

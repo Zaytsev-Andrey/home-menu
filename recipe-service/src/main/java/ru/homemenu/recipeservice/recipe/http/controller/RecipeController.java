@@ -1,5 +1,6 @@
 package ru.homemenu.recipeservice.recipe.http.controller;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,8 +12,11 @@ import ru.homemenu.recipeservice.dto.SingleResponse;
 import ru.homemenu.recipeservice.recipe.database.entity.Recipe;
 import ru.homemenu.recipeservice.recipe.dto.RecipeCreateDto;
 import ru.homemenu.recipeservice.recipe.dto.RecipeReadDto;
+import ru.homemenu.recipeservice.recipe.dto.RecipeUpdateDto;
 import ru.homemenu.recipeservice.recipe.mapper.RecipeMapper;
 import ru.homemenu.recipeservice.recipe.service.RecipeService;
+
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @RestController
@@ -33,9 +37,22 @@ public class RecipeController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public SingleResponse<RecipeReadDto> save(@RequestBody @Validated RecipeCreateDto recipeCreateDto) {
-        Recipe recipe = recipeMapper.toEntity(recipeCreateDto);
-        Recipe sevedRecipe = recipeService.save(recipe);
+        Recipe sevedRecipe = recipeService.save(recipeCreateDto);
         RecipeReadDto recipeReadDto = recipeMapper.toDto(sevedRecipe);
         return SingleResponse.of(recipeReadDto);
+    }
+
+    @PutMapping("/{recipeId}")
+    public SingleResponse<RecipeReadDto> update(@PathVariable UUID recipeId,
+                                                @RequestBody @Validated RecipeUpdateDto recipeUpdateDto) {
+        Recipe recipe = recipeService.update(recipeId, recipeUpdateDto);
+        RecipeReadDto recipeReadDto = recipeMapper.toDto(recipe);
+        return SingleResponse.of(recipeReadDto);
+    }
+
+    @DeleteMapping("/{recipeId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable UUID recipeId, @RequestParam @NotNull Long version) {
+        recipeService.delete(recipeId, version);
     }
 }

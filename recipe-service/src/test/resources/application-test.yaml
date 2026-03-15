@@ -2,3 +2,7 @@ spring:
   datasource:
     username: postgres
     password: password
+
+logging:
+  level:
+    org.hibernate.orm.jdbc.bind: TRACE

@@ -3,6 +3,8 @@ package ru.homemenu.recipeservice.dto;
 public enum HttpErrorCode {
     CONSTRAINT_VIOLATION,
     JSON_PARSE_ERROR,
+    MISSING_REQUEST_PARAMETER,
+    OPTIMISTIC_LOCK_ERROR,
     REQUEST_VALIDATION_FAILED,
     RESOURCE_NOT_FOUND,
     UNEXPECTED_ERROR

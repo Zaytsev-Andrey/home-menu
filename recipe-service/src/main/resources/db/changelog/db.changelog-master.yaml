@@ -1,3 +1,7 @@
 databaseChangeLog:
   - includeAll: 
       path: db/changelog/chengeset/recipe
+  - includeAll:
+      path: db/changelog/chengeset/ingredient
+  - includeAll:
+      path: db/changelog/chengeset/recipe-ingredient
