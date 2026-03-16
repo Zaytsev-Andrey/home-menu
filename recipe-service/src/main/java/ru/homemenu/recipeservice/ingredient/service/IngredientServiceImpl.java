@@ -1,12 +1,20 @@
 package ru.homemenu.recipeservice.ingredient.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.homemenu.recipeservice.database.util.OptimisticLockUtil;
 import ru.homemenu.recipeservice.ingredient.database.entity.Ingredient;
 import ru.homemenu.recipeservice.ingredient.database.repository.IngredientRepository;
+import ru.homemenu.recipeservice.ingredient.dto.IngredientCreateDto;
+import ru.homemenu.recipeservice.ingredient.dto.IngredientReadDto;
+import ru.homemenu.recipeservice.ingredient.dto.IngredientUpdateDto;
+import ru.homemenu.recipeservice.ingredient.http.exception.IngredientNotFoundException;
+import ru.homemenu.recipeservice.ingredient.mapper.IngredientMapper;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,30 +27,57 @@ public class IngredientServiceImpl implements IngredientService {
 
     private final IngredientRepository ingredientRepository;
 
+    private final IngredientMapper ingredientMapper;
+
     @Override
-    public Page<Ingredient> findAll(Pageable pageable) {
-        return ingredientRepository.findAll(pageable);
+    public Page<IngredientReadDto> findAll(Pageable pageable) {
+        return ingredientRepository.findAll(pageable)
+                .map(ingredientMapper::toDto);
+    }
+
+    @Cacheable(cacheNames = "ingredientById", key = "#ingredientId")
+    @Override
+    public Optional<IngredientReadDto> findById(UUID ingredientId) {
+        return ingredientRepository.findById(ingredientId)
+                .map(ingredientMapper::toDto);
     }
 
     @Override
-    public Optional<Ingredient> findById(UUID id) {
-        return ingredientRepository.findById(id);
-    }
-
-    @Override
-    public List<Ingredient> findByIds(Iterable<UUID> ids) {
+    public List<Ingredient> findEntitiesByIds(Iterable<UUID> ids) {
         return ingredientRepository.findAllById(ids);
     }
 
     @Transactional
     @Override
-    public Ingredient save(Ingredient ingredient) {
-        return ingredientRepository.save(ingredient);
+    public IngredientReadDto save(IngredientCreateDto ingredientCreateDto) {
+        Ingredient ingredient = ingredientMapper.toEntity(ingredientCreateDto);
+        ingredientRepository.save(ingredient);
+        return ingredientMapper.toDto(ingredient);
     }
 
     @Transactional
+    @CacheEvict(cacheNames = "ingredientById", key = "#ingredientId")
     @Override
-    public void delete(UUID id) {
-        ingredientRepository.deleteById(id);
+    public IngredientReadDto update(UUID ingredientId, IngredientUpdateDto ingredientUpdateDto) {
+        Ingredient ingredient = ingredientRepository.findById(ingredientId)
+                .orElseThrow(() -> new IngredientNotFoundException(ingredientId));
+
+        OptimisticLockUtil.valid(ingredient, ingredientUpdateDto.version());
+
+        ingredientMapper.update(ingredient, ingredientUpdateDto);
+        ingredientRepository.saveAndFlush(ingredient);
+        return ingredientMapper.toDto(ingredient);
+    }
+
+    @Transactional
+    @CacheEvict(cacheNames = "ingredientById", key = "#ingredientId")
+    @Override
+    public void delete(UUID ingredientId, Long version) {
+        Ingredient ingredient = ingredientRepository.findById(ingredientId)
+                .orElseThrow(() -> new IngredientNotFoundException(ingredientId));
+
+        OptimisticLockUtil.valid(ingredient, version);
+
+        ingredientRepository.delete(ingredient);
     }
 }

@@ -1,0 +1,30 @@
+### Find all Ingredients
+GET http://localhost:8080/api/v1/ingredients?size=30
+Accept: application/json
+X-Request-ID: 18d39335-e5a9-4b7f-97d9-a4a03315a000
+
+### Find Ingredient by ID
+GET http://localhost:8080/api/v1/ingredients/a8cdfb13-cfef-48bb-ae4e-1da8868215b8
+Accept: application/json
+X-Request-ID: 18d39335-e5a9-4b7f-97d9-a4a03315a001
+
+### Create Ingredient
+POST http://localhost:8080/api/v1/ingredients
+Content-Type: application/json
+
+{
+    "title": "Tea"
+}
+
+### Update Ingredient
+PUT http://localhost:8080/api/v1/ingredients/287b855b-588f-48d8-94e1-8fef49624a5e
+Content-Type: application/json
+
+{
+    "version": 2,
+    "title": "Black Tea"
+}
+
+
+### Delete Ingredient
+DELETE http://localhost:8080/api/v1/ingredients/287b855b-588f-48d8-94e1-8fef49624a5e?version=3

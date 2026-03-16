@@ -11,14 +11,32 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - recipe_service_db_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     networks:
-      - observability
+      - home-menu
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d recipe_service_db"]
       interval: 5s
       timeout: 5s
       retries: 20
+
+  redis:
+    image: redis:7.2
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ./docker/redis/config/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - redis_data:/data
+    networks:
+      - home-menu
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   loki:
     image: grafana/loki:3.5.0
@@ -31,7 +49,7 @@ services:
       - ./docker/loki/config/loki-config.yaml:/etc/loki/local-config.yaml:ro
       - loki_data:/loki
     networks:
-      - observability
+      - home-menu
     healthcheck:
       test: [ "CMD-SHELL", "wget -q --spider http://localhost:3100/ready || exit 1" ]
       interval: 10s
@@ -50,7 +68,7 @@ services:
     volumes:
       - victoriametrics_data:/storage
     networks:
-      - observability
+      - home-menu
     healthcheck:
       test: [ "CMD-SHELL", "wget -q --spider http://localhost:8428/health || exit 1" ]
       interval: 10s
@@ -70,7 +88,7 @@ services:
     volumes:
       - ./docker/vmagent/config/prometheus.yaml:/etc/prometheus/prometheus.yaml
     networks:
-      - observability
+      - home-menu
 
   grafana:
     image: grafana/grafana:12.3
@@ -91,7 +109,7 @@ services:
       - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
       - grafana_data:/var/lib/grafana
     networks:
-      - observability
+      - home-menu
     healthcheck:
       test: [ "CMD-SHELL", "wget -q --spider http://localhost:3000/api/health || exit 1" ]
       interval: 10s
@@ -99,12 +117,13 @@ services:
       retries: 20
 
 volumes:
-  recipe_service_db_data:
+  postgres_data:
+  redis_data:
   loki_data:
   victoriametrics_data:
   grafana_data:
 
 networks:
-  observability:
-    name: home-menu-observability
+  home-menu:
+    name: home-menu-network
     driver: bridge
