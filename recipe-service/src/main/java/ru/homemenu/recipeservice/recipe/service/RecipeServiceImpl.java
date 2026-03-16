@@ -8,7 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.homemenu.recipeservice.http.exception.OptimisticLockValidationException;
+import ru.homemenu.recipeservice.database.util.OptimisticLockUtil;
 import ru.homemenu.recipeservice.ingredient.database.entity.Ingredient;
 import ru.homemenu.recipeservice.ingredient.http.exception.IngredientNotFoundException;
 import ru.homemenu.recipeservice.ingredient.service.IngredientService;
@@ -63,8 +63,8 @@ public class RecipeServiceImpl implements RecipeService {
         Map<UUID, RecipeIngredientCreateDto> recipeIngredientCreateDtoMap = recipeIngredientCreateDtos.stream()
                 .collect(Collectors.toMap(RecipeIngredientCreateDto::ingredientId, Function.identity()));
 
-        List<Ingredient> ingredients = findIngredients(ingredientIds);
         Recipe recipe = recipeMapper.toEntity(recipeCreateDto);
+        List<Ingredient> ingredients = findIngredients(ingredientIds);
         for (Ingredient ingredient : ingredients) {
             RecipeIngredientCreateDto recipeIngredientCreateDto = recipeIngredientCreateDtoMap.get(ingredient.getId());
             RecipeIngredient recipeIngredient = recipeMapper.toEntity(recipeIngredientCreateDto, ingredient);
@@ -95,7 +95,7 @@ public class RecipeServiceImpl implements RecipeService {
     }
 
     private List<Ingredient> findIngredients(Collection<UUID> ingredientIds) {
-        List<Ingredient> ingredients = ingredientService.findByIds(ingredientIds);
+        List<Ingredient> ingredients = ingredientService.findEntitiesByIds(ingredientIds);
 
         if (ingredients.size() != ingredientIds.size()) {
             Set<UUID> actualIngredientIds = ingredients.stream()
@@ -125,7 +125,7 @@ public class RecipeServiceImpl implements RecipeService {
 
         Recipe recipe = recipeRepository.findWithIngredientsById(recipeId)
                 .orElseThrow(() -> new RecipeNotFoundException(recipeId));
-        validateOptimisticLock(recipe, recipeUpdateDto.version());
+        OptimisticLockUtil.valid(recipe, recipeUpdateDto.version());
         recipeMapper.update(recipe, recipeUpdateDto);
 
         boolean isRecipeChanged = false;
@@ -169,12 +169,6 @@ public class RecipeServiceImpl implements RecipeService {
         return recipe;
     }
 
-    private static void validateOptimisticLock(Recipe recipe, Long actualVersion) {
-        if (!Objects.equals(recipe.getVersion(), actualVersion)) {
-            throw new OptimisticLockValidationException(recipe.getId(), recipe.getVersion(), actualVersion);
-        }
-    }
-
     private static boolean recipeIngredientChanged(RecipeIngredient recipeIngredient, RecipeIngredientUpdateDto recipeIngredientUpdateDto) {
         return !recipeIngredientUpdateDto.quantity().equals(recipeIngredient.getQuantity());
     }
@@ -185,7 +179,7 @@ public class RecipeServiceImpl implements RecipeService {
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new RecipeNotFoundException(recipeId));
 
-        validateOptimisticLock(recipe, version);
+        OptimisticLockUtil.valid(recipe, version);
 
         recipeRepository.delete(recipe);
     }

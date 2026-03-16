@@ -1,8 +1,11 @@
-package ru.homemenu.recipeservice.ingredient.database.dto;
+package ru.homemenu.recipeservice.ingredient.dto;
+
+import lombok.Builder;
 
 import java.time.Instant;
 import java.util.UUID;
 
+@Builder
 public record IngredientReadDto(
         UUID id,
         Instant createdAt,

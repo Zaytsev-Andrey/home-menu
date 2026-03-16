@@ -143,15 +143,16 @@ class RecipeServiceImplTest {
         doReturn(10)
                 .when(recipeProperty).maxRecipeIngredients();
         doReturn(List.of(firstIngredient))
-                .when(ingredientService).findByIds(ingredientIds);
+                .when(ingredientService).findEntitiesByIds(ingredientIds);
 
         assertThatThrownBy(() -> recipeService.save(recipeCreateDto))
                 .isInstanceOf(IngredientNotFoundException.class);
 
         verify(recipeProperty, times(1)).maxRecipeIngredients();
-        verify(ingredientService, times(1)).findByIds(ingredientIds);
-        verifyNoMoreInteractions(recipeProperty, ingredientService);
-        verifyNoInteractions(recipeRepository, recipeMapper);
+        verify(ingredientService, times(1)).findEntitiesByIds(ingredientIds);
+        verify(recipeMapper, times(1)).toEntity(recipeCreateDto);
+        verifyNoMoreInteractions(recipeProperty, ingredientService, recipeMapper);
+        verifyNoInteractions(recipeRepository);
     }
 
     @Test
@@ -182,7 +183,7 @@ class RecipeServiceImplTest {
         doReturn(10)
                 .when(recipeProperty).maxRecipeIngredients();
         doReturn(List.of(firstIngredient, secondIngredient))
-                .when(ingredientService).findByIds(ingredientIds);
+                .when(ingredientService).findEntitiesByIds(ingredientIds);
         doReturn(recipe)
                 .when(recipeMapper).toEntity(recipeCreateDto);
         doReturn(firstRecipeIngredient)
@@ -195,7 +196,7 @@ class RecipeServiceImplTest {
         Recipe result = recipeService.save(recipeCreateDto);
 
         verify(recipeProperty, times(1)).maxRecipeIngredients();
-        verify(ingredientService, times(1)).findByIds(ingredientIds);
+        verify(ingredientService, times(1)).findEntitiesByIds(ingredientIds);
         verify(recipeMapper, times(1)).toEntity(recipeCreateDto);
         verify(recipeMapper, times(1)).toEntity(firstRecipeIngredientCreateDto, firstIngredient);
         verify(recipeMapper, times(1)).toEntity(secondRecipeIngredientCreateDto, secondIngredient);
@@ -481,7 +482,7 @@ class RecipeServiceImplTest {
         doReturn(Optional.of(recipe))
                 .when(recipeRepository).findWithIngredientsById(recipeId);
         doReturn(Collections.singletonList(secondIngredient))
-                .when(ingredientService).findByIds(ingredientIds);
+                .when(ingredientService).findEntitiesByIds(ingredientIds);
         doReturn(secondRecipeIngredient)
                 .when(recipeMapper).toEntity(secondRecipeIngredientUpdateDto, secondIngredient);
 
@@ -495,7 +496,7 @@ class RecipeServiceImplTest {
         verify(recipeProperty, times(1)).maxRecipeIngredients();
         verify(recipeRepository).findWithIngredientsById(recipeId);
         verify(recipeMapper).update(recipe, dto);
-        verify(ingredientService, times(1)).findByIds(ingredientIds);
+        verify(ingredientService, times(1)).findEntitiesByIds(ingredientIds);
         verify(entityManager).lock(recipe, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
         verifyNoMoreInteractions(recipeProperty, recipeRepository, recipeMapper, entityManager, ingredientService);
     }
@@ -532,7 +533,7 @@ class RecipeServiceImplTest {
         doReturn(Optional.of(recipe))
                 .when(recipeRepository).findWithIngredientsById(recipeId);
         doReturn(Collections.emptyList())
-                .when(ingredientService).findByIds(ingredientIds);
+                .when(ingredientService).findEntitiesByIds(ingredientIds);
 
         assertThatThrownBy(() -> recipeService.update(recipeId, dto))
                 .isInstanceOf(IngredientNotFoundException.class);
@@ -540,7 +541,7 @@ class RecipeServiceImplTest {
         verify(recipeProperty, times(1)).maxRecipeIngredients();
         verify(recipeRepository).findWithIngredientsById(recipeId);
         verify(recipeMapper).update(recipe, dto);
-        verify(ingredientService, times(1)).findByIds(ingredientIds);
+        verify(ingredientService, times(1)).findEntitiesByIds(ingredientIds);
         verify(entityManager, never()).lock(any(), any());
         verifyNoMoreInteractions(recipeProperty, recipeRepository, recipeMapper, ingredientService);
         verifyNoInteractions(entityManager);

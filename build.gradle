@@ -36,6 +36,8 @@ project(":recipe-service") {
         implementation libs.spring.boot.starter.validation
         implementation libs.spring.boot.starter.data.jpa
         implementation libs.spring.boot.starter.liquibase
+        implementation libs.spring.boot.starter.cache
+        implementation libs.spring.boot.starter.data.redis
         implementation libs.mapstruct
         implementation libs.loki.logback.appender
 
@@ -51,6 +53,8 @@ project(":recipe-service") {
         testImplementation libs.testcontainers.postgresql
         testImplementation libs.spring.boot.starter.actuator.test
         testImplementation libs.spring.boot.starter.data.jpa.test
+        testImplementation libs.spring.boot.starter.cache.test
+        testImplementation libs.spring.boot.starter.data.redis.test
         testImplementation libs.spring.boot.starter.webmvc.test
 
         testRuntimeOnly libs.junit.platform.launcher
