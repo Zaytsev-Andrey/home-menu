@@ -1,8 +1,6 @@
 package ru.homemenu.recipeservice.ingredient.database.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import ru.homemenu.recipeservice.database.entity.AuditingUuidEntity;
@@ -19,5 +17,9 @@ public class Ingredient extends AuditingUuidEntity {
 
     @Column(name = "title", nullable = false, unique = true)
     private String title;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false, length = 50)
+    private IngredientType type;
 
 }

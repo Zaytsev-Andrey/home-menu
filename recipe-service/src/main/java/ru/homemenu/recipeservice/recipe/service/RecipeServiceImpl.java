@@ -15,10 +15,7 @@ import ru.homemenu.recipeservice.ingredient.service.IngredientService;
 import ru.homemenu.recipeservice.recipe.database.entity.Recipe;
 import ru.homemenu.recipeservice.recipe.database.entity.RecipeIngredient;
 import ru.homemenu.recipeservice.recipe.database.repository.RecipeRepository;
-import ru.homemenu.recipeservice.recipe.dto.RecipeCreateDto;
-import ru.homemenu.recipeservice.recipe.dto.RecipeIngredientCreateDto;
-import ru.homemenu.recipeservice.recipe.dto.RecipeIngredientUpdateDto;
-import ru.homemenu.recipeservice.recipe.dto.RecipeUpdateDto;
+import ru.homemenu.recipeservice.recipe.dto.*;
 import ru.homemenu.recipeservice.recipe.http.exception.RecipeIngredientDuplicateException;
 import ru.homemenu.recipeservice.recipe.http.exception.RecipeIngredientInvalidCountException;
 import ru.homemenu.recipeservice.recipe.http.exception.RecipeNotFoundException;
@@ -46,13 +43,20 @@ public class RecipeServiceImpl implements RecipeService {
     private final RecipeProperty recipeProperty;
 
     @Override
-    public Page<Recipe> findAll(Pageable pageable) {
-        return recipeRepository.findAll(pageable);
+    public Page<RecipeReadDto> findAll(Pageable pageable) {
+        return recipeRepository.findAll(pageable)
+                .map(recipeMapper::toDto);
+    }
+
+    @Override
+    public Optional<RecipeReadDto> findById(UUID recipeId) {
+        return recipeRepository.findById(recipeId)
+                .map(recipeMapper::toDto);
     }
 
     @Transactional
     @Override
-    public Recipe save(RecipeCreateDto recipeCreateDto) {
+    public RecipeReadDto save(RecipeCreateDto recipeCreateDto) {
         List<RecipeIngredientCreateDto> recipeIngredientCreateDtos = recipeCreateDto.recipeIngredientDtos();
         validateCountIngredients(recipeIngredientCreateDtos.size());
 
@@ -71,7 +75,8 @@ public class RecipeServiceImpl implements RecipeService {
             recipe.addIngredient(recipeIngredient);
         }
 
-        return recipeRepository.save(recipe);
+        recipeRepository.save(recipe);
+        return recipeMapper.toDto(recipe);
     }
 
     private void validateCountIngredients(int ingredientsCount) {
@@ -112,7 +117,7 @@ public class RecipeServiceImpl implements RecipeService {
 
     @Transactional
     @Override
-    public Recipe update(UUID recipeId, RecipeUpdateDto recipeUpdateDto) {
+    public RecipeReadDto update(UUID recipeId, RecipeUpdateDto recipeUpdateDto) {
         List<RecipeIngredientUpdateDto> recipeIngredientUpdateDtos = recipeUpdateDto.recipeIngredientDtos();
         validateCountIngredients(recipeIngredientUpdateDtos.size());
 
@@ -166,7 +171,8 @@ public class RecipeServiceImpl implements RecipeService {
             entityManager.lock(recipe, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
         }
 
-        return recipe;
+        recipeRepository.saveAndFlush(recipe);
+        return recipeMapper.toDto(recipe);
     }
 
     private static boolean recipeIngredientChanged(RecipeIngredient recipeIngredient, RecipeIngredientUpdateDto recipeIngredientUpdateDto) {

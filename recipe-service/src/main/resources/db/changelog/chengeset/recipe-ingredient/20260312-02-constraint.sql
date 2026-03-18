@@ -7,12 +7,10 @@ ALTER TABLE recipe_ingredient
 -- changeset a.zaytsev:2
 ALTER TABLE recipe_ingredient
     ADD CONSTRAINT fk_recipe_ingredient_on_ingredient FOREIGN KEY (ingredient_id) REFERENCES ingredient (id);
-CREATE INDEX idx_recipe_ingredient_ingredient ON recipe_ingredient (ingredient_id);
 
 -- changeset a.zaytsev:3
 ALTER TABLE recipe_ingredient
     ADD CONSTRAINT fk_recipe_ingredient_on_recipe FOREIGN KEY (recipe_id) REFERENCES recipe (id);
-CREATE INDEX idx_recipe_ingredient_recipe ON recipe_ingredient (recipe_id);
 
 -- changeset a.zaytsev:4
 ALTER TABLE recipe_ingredient

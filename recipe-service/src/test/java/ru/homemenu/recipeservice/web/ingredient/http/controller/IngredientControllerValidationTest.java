@@ -20,12 +20,13 @@ class IngredientControllerValidationTest extends WebTestBase {
     private final MockMvc mockMvc;
 
     @Test
-    void save_whenIngredientCreateDtoNotValid_return400() throws Exception {
+    void save_whenIngredientSaveDtoNotValid_return400() throws Exception {
         mockMvc.perform(post("/api/v1/ingredients")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                     {
-                                        "title": null
+                                        "title": null,
+                                        "type": null
                                     }
                                 """))
                 .andDo(print())
@@ -33,18 +34,20 @@ class IngredientControllerValidationTest extends WebTestBase {
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.status").value("400"))
                 .andExpect(jsonPath("$.errorCode").value(HttpErrorCode.REQUEST_VALIDATION_FAILED.toString()))
-                .andExpect(jsonPath("$.errors", aMapWithSize(1)))
+                .andExpect(jsonPath("$.errors", aMapWithSize(2)))
                 .andExpect(jsonPath("$.errors", hasKey("title")))
+                .andExpect(jsonPath("$.errors", hasKey("type")))
                 .andExpect(jsonPath("$.path").value("/api/v1/ingredients"));
     }
 
     @Test
-    void save_whenIngredientCreateDtoIsValid_return201() throws Exception {
+    void save_whenIngredientSaveDtoIsValid_return201() throws Exception {
         mockMvc.perform(post("/api/v1/ingredients")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                     {
-                                        "title": "Title"
+                                        "title": "Title",
+                                        "type": "OTHER"
                                     }
                                 """))
                 .andDo(print())
@@ -58,7 +61,8 @@ class IngredientControllerValidationTest extends WebTestBase {
                         .content("""
                                     {
                                         "version": null,
-                                        "title": null
+                                        "title": null,
+                                        "type": null
                                     }
                                 """))
                 .andDo(print())
@@ -66,9 +70,10 @@ class IngredientControllerValidationTest extends WebTestBase {
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.status").value("400"))
                 .andExpect(jsonPath("$.errorCode").value(HttpErrorCode.REQUEST_VALIDATION_FAILED.toString()))
-                .andExpect(jsonPath("$.errors", aMapWithSize(2)))
+                .andExpect(jsonPath("$.errors", aMapWithSize(3)))
                 .andExpect(jsonPath("$.errors", hasKey("version")))
                 .andExpect(jsonPath("$.errors", hasKey("title")))
+                .andExpect(jsonPath("$.errors", hasKey("type")))
                 .andExpect(jsonPath("$.path").value("/api/v1/ingredients/00000000-0000-0000-0000-000000000000"));
     }
 
@@ -79,7 +84,8 @@ class IngredientControllerValidationTest extends WebTestBase {
                         .content("""
                                     {
                                         "version": 0,
-                                        "title": "Title"
+                                        "title": "Title",
+                                        "type": "OTHER"
                                     }
                                 """))
                 .andDo(print())

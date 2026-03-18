@@ -4,9 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import ru.homemenu.recipeservice.dto.HttpErrorCode;
 import ru.homemenu.recipeservice.recipe.database.entity.Recipe;
 import ru.homemenu.recipeservice.recipe.dto.RecipeCreateDto;
 import ru.homemenu.recipeservice.recipe.dto.RecipeIngredientReadDto;
@@ -16,6 +17,7 @@ import ru.homemenu.recipeservice.web.WebTestBase;
 
 import java.time.Instant;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -52,7 +54,6 @@ class RecipeControllerWebTest extends WebTestBase {
 
     @Test
     void findAll_whenRecipeExist_returnListOfRecipeReadDto() throws Exception {
-        Recipe recipe = Recipe.builder().build();
         RecipeIngredientReadDto recipeIngredientReadDto = RecipeIngredientReadDto.builder()
                 .ingredientId(UUID.randomUUID())
                 .title("Title")
@@ -70,11 +71,9 @@ class RecipeControllerWebTest extends WebTestBase {
                 .recipeIngredientDtos(Collections.singletonList(recipeIngredientReadDto))
                 .build();
         PageRequest pageable = PageRequest.of(0, 10);
-        PageImpl<Recipe> recipePage = new PageImpl<>(Collections.singletonList(recipe), pageable, 1);
+        PageImpl<RecipeReadDto> recipePage = new PageImpl<>(Collections.singletonList(recipeReadDto), pageable, 1);
         doReturn(recipePage)
                 .when(getRecipeService()).findAll(PageRequest.of(0, 10));
-        doReturn(recipeReadDto)
-                .when(getRecipeMapper()).toDto(recipe);
 
         mockMvc.perform(get("/api/v1/recipes")
                         .param("page", "0")
@@ -102,8 +101,8 @@ class RecipeControllerWebTest extends WebTestBase {
     }
 
     @Test
-    void save() throws Exception {
-        Recipe savedRecipe = Recipe.builder().build();
+    void findById_whenRecipeNotExist_returnEmpty() throws Exception {
+        UUID recipeId = UUID.randomUUID();
         RecipeIngredientReadDto recipeIngredientReadDto = RecipeIngredientReadDto.builder()
                 .ingredientId(UUID.randomUUID())
                 .title("Title")
@@ -120,10 +119,65 @@ class RecipeControllerWebTest extends WebTestBase {
                 .description("Description")
                 .recipeIngredientDtos(Collections.singletonList(recipeIngredientReadDto))
                 .build();
-        doReturn(savedRecipe)
-                .when(getRecipeService()).save(any(RecipeCreateDto.class));
+        doReturn(Optional.of(recipeReadDto))
+                .when(getRecipeService()).findById(recipeId);
+
+        mockMvc.perform(get("/api/v1/recipes/{recipeId}", recipeId))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.data.id").value(recipeReadDto.id().toString()))
+                .andExpect(jsonPath("$.data.createdAt").value(recipeReadDto.createdAt().toString()))
+                .andExpect(jsonPath("$.data.updatedAt").value(recipeReadDto.updatedAt().toString()))
+                .andExpect(jsonPath("$.data.createdBy").value(recipeReadDto.createdBy()))
+                .andExpect(jsonPath("$.data.updatedBy").value(recipeReadDto.updatedBy()))
+                .andExpect(jsonPath("$.data.version").value(recipeReadDto.version()))
+                .andExpect(jsonPath("$.data.title").value(recipeReadDto.title()))
+                .andExpect(jsonPath("$.data.description").value(recipeReadDto.description()))
+                .andExpect(jsonPath("$.data.recipeIngredientDtos", hasSize(1)))
+                .andExpect(jsonPath("$.data.recipeIngredientDtos[0].ingredientId").value(recipeIngredientReadDto.ingredientId().toString()))
+                .andExpect(jsonPath("$.data.recipeIngredientDtos[0].title").value(recipeIngredientReadDto.title()))
+                .andExpect(jsonPath("$.data.recipeIngredientDtos[0].quantity").value(recipeIngredientReadDto.quantity()));
+    }
+
+    @Test
+    void findById_whenRecipeExist_returnRecipeReadDto() throws Exception {
+        UUID recipeId = UUID.randomUUID();
+
+        doReturn(Optional.empty())
+                .when(getRecipeService()).findById(recipeId);
+
+        mockMvc.perform(get("/api/v1/recipes/{recipeId}",  recipeId))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.status").value(HttpStatus.NOT_FOUND.value()))
+                .andExpect(jsonPath("$.errorCode").value(HttpErrorCode.RESOURCE_NOT_FOUND.toString()))
+                .andExpect(jsonPath("$.error").exists())
+                .andExpect(jsonPath("$.path").value("/api/v1/recipes/" + recipeId));
+    }
+
+    @Test
+    void save() throws Exception {
+        RecipeIngredientReadDto recipeIngredientReadDto = RecipeIngredientReadDto.builder()
+                .ingredientId(UUID.randomUUID())
+                .title("Title")
+                .quantity(2)
+                .build();
+        RecipeReadDto recipeReadDto = RecipeReadDto.builder()
+                .id(UUID.randomUUID())
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .createdBy("admin")
+                .updatedBy("user")
+                .version(1L)
+                .title("Title")
+                .description("Description")
+                .recipeIngredientDtos(Collections.singletonList(recipeIngredientReadDto))
+                .build();
         doReturn(recipeReadDto)
-                .when(getRecipeMapper()).toDto(savedRecipe);
+                .when(getRecipeService()).save(any(RecipeCreateDto.class));
 
         mockMvc.perform(post("/api/v1/recipes")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -158,7 +212,6 @@ class RecipeControllerWebTest extends WebTestBase {
 
     @Test
     void update() throws Exception {
-        Recipe updatedRecipe = Recipe.builder().build();
         RecipeIngredientReadDto recipeIngredientReadDto = RecipeIngredientReadDto.builder()
                 .ingredientId(UUID.randomUUID())
                 .title("Title")
@@ -175,10 +228,8 @@ class RecipeControllerWebTest extends WebTestBase {
                 .description("Description")
                 .recipeIngredientDtos(Collections.singletonList(recipeIngredientReadDto))
                 .build();
-        doReturn(updatedRecipe)
-                .when(getRecipeService()).update(any(UUID.class), any(RecipeUpdateDto.class));
         doReturn(recipeReadDto)
-                .when(getRecipeMapper()).toDto(updatedRecipe);
+                .when(getRecipeService()).update(any(UUID.class), any(RecipeUpdateDto.class));
 
         mockMvc.perform(put("/api/v1/recipes/{recipeId}", recipeReadDto.id())
                         .contentType(MediaType.APPLICATION_JSON)

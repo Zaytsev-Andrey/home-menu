@@ -16,10 +16,7 @@ import ru.homemenu.recipeservice.ingredient.service.IngredientService;
 import ru.homemenu.recipeservice.recipe.database.entity.Recipe;
 import ru.homemenu.recipeservice.recipe.database.entity.RecipeIngredient;
 import ru.homemenu.recipeservice.recipe.database.repository.RecipeRepository;
-import ru.homemenu.recipeservice.recipe.dto.RecipeCreateDto;
-import ru.homemenu.recipeservice.recipe.dto.RecipeIngredientCreateDto;
-import ru.homemenu.recipeservice.recipe.dto.RecipeIngredientUpdateDto;
-import ru.homemenu.recipeservice.recipe.dto.RecipeUpdateDto;
+import ru.homemenu.recipeservice.recipe.dto.*;
 import ru.homemenu.recipeservice.recipe.http.exception.RecipeIngredientDuplicateException;
 import ru.homemenu.recipeservice.recipe.http.exception.RecipeIngredientInvalidCountException;
 import ru.homemenu.recipeservice.recipe.http.exception.RecipeNotFoundException;
@@ -62,18 +59,56 @@ class RecipeServiceImplTest {
         PageRequest pageable = PageRequest.of(0, 10);
         Recipe recipe = Recipe.builder().build();
         PageImpl<Recipe> recipePage = new PageImpl<>(Collections.singletonList(recipe), pageable, 1);
+        RecipeReadDto recipeReadDto = RecipeReadDto.builder().build();
         doReturn(recipePage)
                 .when(recipeRepository).findAll(pageable);
+        doReturn(recipeReadDto)
+                .when(recipeMapper).toDto(recipe);
 
-        Page<Recipe> result = recipeService.findAll(pageable);
+        Page<RecipeReadDto> result = recipeService.findAll(pageable);
 
         assertThat(result).hasSize(1);
-        assertThat(result).containsOnly(recipe);
+        assertThat(result).containsOnly(recipeReadDto);
 
         verify(recipeRepository, Mockito.times(1)).findAll(pageable);
-        verifyNoMoreInteractions(recipeRepository);
+        verify(recipeMapper, Mockito.times(1)).toDto(recipe);
+        verifyNoMoreInteractions(recipeRepository, recipeMapper);
     }
 
+    @Test
+    void findById_whenRecipeExist_returnOptionalOfRecipeReadDto() {
+        UUID recipeId = UUID.randomUUID();
+        Recipe recipe = Recipe.builder().build();
+        RecipeReadDto recipeReadDto = RecipeReadDto.builder().build();
+        doReturn(Optional.of(recipe))
+                .when(recipeRepository).findById(recipeId);
+        doReturn(recipeReadDto)
+                .when(recipeMapper).toDto(recipe);
+
+        Optional<RecipeReadDto> result = recipeService.findById(recipeId);
+
+        assertThat(result).isPresent();
+        assertThat(result).contains(recipeReadDto);
+
+        verify(recipeRepository, Mockito.times(1)).findById(recipeId);
+        verify(recipeMapper, Mockito.times(1)).toDto(recipe);
+        verifyNoMoreInteractions(recipeRepository, recipeMapper);
+    }
+
+    @Test
+    void findById_whenRecipeExist_returnEmptyOptional() {
+        UUID recipeId = UUID.randomUUID();
+        doReturn(Optional.empty())
+                .when(recipeRepository).findById(recipeId);
+
+        Optional<RecipeReadDto> result = recipeService.findById(recipeId);
+
+        assertThat(result).isNotPresent();
+
+        verify(recipeRepository, Mockito.times(1)).findById(recipeId);
+        verifyNoMoreInteractions(recipeRepository);
+        verifyNoInteractions(recipeMapper);
+    }
 
     @Test
     void save_whenRecipeIngredientsHasMoreIngredients_throwsException() {
@@ -156,7 +191,7 @@ class RecipeServiceImplTest {
     }
 
     @Test
-    void save_whenRecipeCreated_returnsRecipe() {
+    void save_whenRecipeCreated_returnsRecipeReadDto() {
         RecipeIngredientCreateDto firstRecipeIngredientCreateDto = RecipeIngredientCreateDto.builder()
                 .ingredientId(UUID.randomUUID())
                 .build();
@@ -180,6 +215,7 @@ class RecipeServiceImplTest {
         Recipe savedRecipe = Recipe.builder().build();
         RecipeIngredient firstRecipeIngredient = RecipeIngredient.builder().build();
         RecipeIngredient secondRecipeIngredient = RecipeIngredient.builder().build();
+        RecipeReadDto recipeReadDto = RecipeReadDto.builder().build();
         doReturn(10)
                 .when(recipeProperty).maxRecipeIngredients();
         doReturn(List.of(firstIngredient, secondIngredient))
@@ -192,8 +228,10 @@ class RecipeServiceImplTest {
                 .when(recipeMapper).toEntity(secondRecipeIngredientCreateDto, secondIngredient);
         doReturn(savedRecipe)
                 .when(recipeRepository).save(recipe);
+        doReturn(recipeReadDto)
+                .when(recipeMapper).toDto(recipe);
 
-        Recipe result = recipeService.save(recipeCreateDto);
+        RecipeReadDto result = recipeService.save(recipeCreateDto);
 
         verify(recipeProperty, times(1)).maxRecipeIngredients();
         verify(ingredientService, times(1)).findEntitiesByIds(ingredientIds);
@@ -201,9 +239,10 @@ class RecipeServiceImplTest {
         verify(recipeMapper, times(1)).toEntity(firstRecipeIngredientCreateDto, firstIngredient);
         verify(recipeMapper, times(1)).toEntity(secondRecipeIngredientCreateDto, secondIngredient);
         verify(recipeRepository, times(1)).save(recipeArgumentCaptor.capture());
+        verify(recipeMapper, times(1)).toDto(recipe);
         verifyNoMoreInteractions(recipeProperty, ingredientService, recipeMapper, recipeRepository);
 
-        assertThat(result).isEqualTo(savedRecipe);
+        assertThat(result).isEqualTo(recipeReadDto);
         assertThat(recipeArgumentCaptor.getValue().getRecipeIngredients()).hasSize(2);
         assertThat(recipeArgumentCaptor.getValue().getRecipeIngredients()).containsOnly(firstRecipeIngredient, secondRecipeIngredient);
     }
@@ -371,20 +410,25 @@ class RecipeServiceImplTest {
                 "Description",
                 List.of(new RecipeIngredientUpdateDto(ingredient.getId(), 2))
         );
+        RecipeReadDto recipeReadDto = RecipeReadDto.builder().build();
         doReturn(10)
                 .when(recipeProperty).maxRecipeIngredients();
         doReturn(Optional.of(recipe))
                 .when(recipeRepository).findWithIngredientsById(recipeId);
+        doReturn(recipeReadDto)
+                .when(recipeMapper).toDto(recipe);
 
-        Recipe result = recipeService.update(recipeId, dto);
+        RecipeReadDto result = recipeService.update(recipeId, dto);
 
-        assertThat(result).isSameAs(recipe);
+        assertThat(result).isSameAs(recipeReadDto);
 
         verify(recipeProperty, times(1)).maxRecipeIngredients();
         verify(recipeRepository).findWithIngredientsById(recipeId);
         verify(recipeMapper).update(recipe, dto);
         verify(recipeMapper).update(recipe.getRecipeIngredients().get(0), dto.recipeIngredientDtos().get(0));
         verify(entityManager).lock(recipe, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+        verify(recipeRepository, times(1)).saveAndFlush(recipe);
+        verify(recipeMapper, times(1)).toDto(recipe);
         verifyNoMoreInteractions(recipeProperty, recipeRepository, recipeMapper, entityManager);
         verifyNoInteractions(ingredientService);
     }
@@ -424,24 +468,32 @@ class RecipeServiceImplTest {
                 "Description",
                 List.of(new RecipeIngredientUpdateDto(firstIngredient.getId(), 1))
         );
+        RecipeReadDto recipeReadDto = RecipeReadDto.builder().build();
         doReturn(10)
                 .when(recipeProperty).maxRecipeIngredients();
         doReturn(Optional.of(recipe))
                 .when(recipeRepository).findWithIngredientsById(recipeId);
+        doReturn(recipeReadDto)
+                .when(recipeMapper).toDto(recipe);
 
-        Recipe result = recipeService.update(recipeId, dto);
+        RecipeReadDto result = recipeService.update(recipeId, dto);
 
-        assertThat(result.getRecipeIngredients()).hasSize(1);
-        assertThat(result.getRecipeIngredients())
-                .extracting(ri -> ri.getIngredient().getId())
-                .containsExactly(firstIngredient.getId());
+
 
         verify(recipeProperty, times(1)).maxRecipeIngredients();
         verify(recipeRepository).findWithIngredientsById(recipeId);
         verify(recipeMapper).update(recipe, dto);
         verify(entityManager).lock(recipe, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+        verify(recipeRepository, times(1)).saveAndFlush(recipeArgumentCaptor.capture());
+        verify(recipeMapper, times(1)).toDto(recipe);
         verifyNoMoreInteractions(recipeProperty, recipeRepository, recipeMapper, entityManager);
         verifyNoInteractions(ingredientService);
+
+        assertThat(result).isSameAs(recipeReadDto);
+        assertThat(recipeArgumentCaptor.getValue().getRecipeIngredients()).hasSize(1);
+        assertThat(recipeArgumentCaptor.getValue().getRecipeIngredients())
+                .extracting(ri -> ri.getIngredient().getId())
+                .containsExactly(firstIngredient.getId());
     }
 
     @Test
@@ -477,6 +529,7 @@ class RecipeServiceImplTest {
                 List.of(firstRecipeIngredientUpdateDto, secondRecipeIngredientUpdateDto)
         );
         List<UUID> ingredientIds = Collections.singletonList(secondIngredient.getId());
+        RecipeReadDto recipeReadDto = RecipeReadDto.builder().build();
         doReturn(10)
                 .when(recipeProperty).maxRecipeIngredients();
         doReturn(Optional.of(recipe))
@@ -485,20 +538,26 @@ class RecipeServiceImplTest {
                 .when(ingredientService).findEntitiesByIds(ingredientIds);
         doReturn(secondRecipeIngredient)
                 .when(recipeMapper).toEntity(secondRecipeIngredientUpdateDto, secondIngredient);
+        doReturn(recipeReadDto)
+                .when(recipeMapper).toDto(recipe);
 
-        Recipe result = recipeService.update(recipeId, dto);
+        RecipeReadDto result = recipeService.update(recipeId, dto);
 
-        assertThat(result.getRecipeIngredients()).hasSize(2);
-        assertThat(result.getRecipeIngredients())
-                .extracting(ri -> ri.getIngredient().getId())
-                .containsExactlyInAnyOrder(firstIngredient.getId(), secondIngredient.getId());
 
         verify(recipeProperty, times(1)).maxRecipeIngredients();
         verify(recipeRepository).findWithIngredientsById(recipeId);
         verify(recipeMapper).update(recipe, dto);
         verify(ingredientService, times(1)).findEntitiesByIds(ingredientIds);
         verify(entityManager).lock(recipe, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+        verify(recipeRepository, times(1)).saveAndFlush(recipeArgumentCaptor.capture());
+        verify(recipeMapper, times(1)).toDto(recipe);
         verifyNoMoreInteractions(recipeProperty, recipeRepository, recipeMapper, entityManager, ingredientService);
+
+        assertThat(result).isSameAs(recipeReadDto);
+        assertThat(recipeArgumentCaptor.getValue().getRecipeIngredients()).hasSize(2);
+        assertThat(recipeArgumentCaptor.getValue().getRecipeIngredients())
+                .extracting(ri -> ri.getIngredient().getId())
+                .containsExactlyInAnyOrder(firstIngredient.getId(), secondIngredient.getId());
     }
 
     @Test
@@ -569,18 +628,23 @@ class RecipeServiceImplTest {
                 "Updated Description",
                 List.of(firstRecipeIngredientUpdateDto)
         );
+        RecipeReadDto recipeReadDto = RecipeReadDto.builder().build();
         doReturn(10)
                 .when(recipeProperty).maxRecipeIngredients();
         doReturn(Optional.of(recipe))
                 .when(recipeRepository).findWithIngredientsById(recipeId);
+        doReturn(recipeReadDto)
+                .when(recipeMapper).toDto(recipe);
 
-        Recipe actual = recipeService.update(recipeId, dto);
+        RecipeReadDto actual = recipeService.update(recipeId, dto);
 
-        assertThat(actual).isSameAs(recipe);
+        assertThat(actual).isSameAs(recipeReadDto);
 
         verify(recipeProperty, times(1)).maxRecipeIngredients();
         verify(recipeRepository).findWithIngredientsById(recipeId);
         verify(recipeMapper).update(recipe, dto);
+        verify(recipeRepository, times(1)).saveAndFlush(recipe);
+        verify(recipeMapper, times(1)).toDto(recipe);
         verifyNoMoreInteractions(recipeProperty, recipeRepository, recipeMapper, ingredientService);
         verifyNoInteractions(entityManager);
     }
@@ -607,18 +671,23 @@ class RecipeServiceImplTest {
                 "Description",
                 List.of(firstRecipeIngredientUpdateDto)
         );
+        RecipeReadDto recipeReadDto = RecipeReadDto.builder().build();
         doReturn(10)
                 .when(recipeProperty).maxRecipeIngredients();
         doReturn(Optional.of(recipe))
                 .when(recipeRepository).findWithIngredientsById(recipeId);
+        doReturn(recipeReadDto)
+                .when(recipeMapper).toDto(recipe);
 
-        Recipe actual = recipeService.update(recipeId, dto);
+        RecipeReadDto result = recipeService.update(recipeId, dto);
 
-        assertThat(actual).isSameAs(recipe);
+        assertThat(result).isSameAs(recipeReadDto);
 
         verify(recipeProperty, times(1)).maxRecipeIngredients();
         verify(recipeRepository).findWithIngredientsById(recipeId);
         verify(recipeMapper).update(recipe, dto);
+        verify(recipeRepository, times(1)).saveAndFlush(recipe);
+        verify(recipeMapper, times(1)).toDto(recipe);
         verifyNoMoreInteractions(recipeProperty, recipeRepository, recipeMapper, ingredientService);
         verifyNoInteractions(entityManager);
     }
