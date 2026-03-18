@@ -13,9 +13,11 @@ import ru.homemenu.recipeservice.recipe.database.entity.Recipe;
 import ru.homemenu.recipeservice.recipe.dto.RecipeCreateDto;
 import ru.homemenu.recipeservice.recipe.dto.RecipeReadDto;
 import ru.homemenu.recipeservice.recipe.dto.RecipeUpdateDto;
+import ru.homemenu.recipeservice.recipe.http.exception.RecipeNotFoundException;
 import ru.homemenu.recipeservice.recipe.mapper.RecipeMapper;
 import ru.homemenu.recipeservice.recipe.service.RecipeService;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -25,28 +27,30 @@ public class RecipeController {
 
     private final RecipeService recipeService;
 
-    private final RecipeMapper recipeMapper;
-
     @GetMapping
     public PageResponse<RecipeReadDto> findAll(Pageable pageable) {
-        Page<RecipeReadDto> recipeReadDtoPage = recipeService.findAll(pageable)
-                .map(recipeMapper::toDto);
+        Page<RecipeReadDto> recipeReadDtoPage = recipeService.findAll(pageable);
         return PageResponse.of(recipeReadDtoPage);
+    }
+
+    @GetMapping("/{recipeId}")
+    public SingleResponse<RecipeReadDto> findById(@PathVariable UUID recipeId) {
+        RecipeReadDto recipeReadDto = recipeService.findById(recipeId)
+                .orElseThrow(() -> new RecipeNotFoundException(recipeId));
+        return SingleResponse.of(recipeReadDto);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public SingleResponse<RecipeReadDto> save(@RequestBody @Validated RecipeCreateDto recipeCreateDto) {
-        Recipe sevedRecipe = recipeService.save(recipeCreateDto);
-        RecipeReadDto recipeReadDto = recipeMapper.toDto(sevedRecipe);
+        RecipeReadDto recipeReadDto = recipeService.save(recipeCreateDto);
         return SingleResponse.of(recipeReadDto);
     }
 
     @PutMapping("/{recipeId}")
     public SingleResponse<RecipeReadDto> update(@PathVariable UUID recipeId,
                                                 @RequestBody @Validated RecipeUpdateDto recipeUpdateDto) {
-        Recipe recipe = recipeService.update(recipeId, recipeUpdateDto);
-        RecipeReadDto recipeReadDto = recipeMapper.toDto(recipe);
+        RecipeReadDto recipeReadDto = recipeService.update(recipeId, recipeUpdateDto);
         return SingleResponse.of(recipeReadDto);
     }
 

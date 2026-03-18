@@ -39,7 +39,7 @@ public class IngredientController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public SingleResponse<IngredientReadDto> create(@RequestBody @Validated IngredientCreateDto ingredientCreateDto) {
+    public SingleResponse<IngredientReadDto> save(@RequestBody @Validated IngredientCreateDto ingredientCreateDto) {
         IngredientReadDto ingredientReadDto = ingredientService.save(ingredientCreateDto);
         return SingleResponse.of(ingredientReadDto);
     }

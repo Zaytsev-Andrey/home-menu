@@ -3,6 +3,7 @@ package ru.homemenu.recipeservice.integration.ingredient.mapper;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import ru.homemenu.recipeservice.ingredient.database.entity.Ingredient;
+import ru.homemenu.recipeservice.ingredient.database.entity.IngredientType;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientCreateDto;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientReadDto;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientUpdateDto;
@@ -29,6 +30,7 @@ class IngredientMapperIT extends IntegrationTestBase {
                 .updatedBy("user")
                 .version(1L)
                 .title("Title...")
+                .type(IngredientType.OTHER)
                 .build();
 
         IngredientReadDto ingredientReadDto = ingredientMapper.toDto(ingredient);
@@ -40,12 +42,14 @@ class IngredientMapperIT extends IntegrationTestBase {
         assertThat(ingredientReadDto.updatedBy()).isEqualTo(ingredient.getUpdatedBy());
         assertThat(ingredientReadDto.version()).isEqualTo(ingredient.getVersion());
         assertThat(ingredientReadDto.title()).isEqualTo(ingredient.getTitle());
+        assertThat(ingredientReadDto.type()).isEqualTo(ingredient.getType());
     }
 
     @Test
     void toEntity() {
         IngredientCreateDto ingredientCreateDto = IngredientCreateDto.builder()
                 .title("Title")
+                .type(IngredientType.OTHER)
                 .build();
 
         Ingredient result = ingredientMapper.toEntity(ingredientCreateDto);
@@ -57,6 +61,7 @@ class IngredientMapperIT extends IntegrationTestBase {
         assertThat(result.getUpdatedBy()).isNull();
         assertThat(result.getVersion()).isNull();
         assertThat(result.getTitle()).isEqualTo(ingredientCreateDto.title());
+        assertThat(result.getType()).isEqualTo(ingredientCreateDto.type());
     }
 
     @Test
@@ -64,6 +69,7 @@ class IngredientMapperIT extends IntegrationTestBase {
         Ingredient ingredient = Ingredient.builder().build();
         IngredientUpdateDto ingredientUpdateDto = IngredientUpdateDto.builder()
                 .title("Title")
+                .type(IngredientType.OTHER)
                 .build();
 
         Ingredient result = ingredientMapper.update(ingredient, ingredientUpdateDto);
@@ -75,5 +81,6 @@ class IngredientMapperIT extends IntegrationTestBase {
         assertThat(result.getUpdatedBy()).isNull();
         assertThat(result.getVersion()).isNull();
         assertThat(result.getTitle()).isEqualTo(ingredientUpdateDto.title());
+        assertThat(result.getType()).isEqualTo(ingredientUpdateDto.type());
     }
 }

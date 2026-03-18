@@ -30,9 +30,9 @@ class RecipeRepositoryDataTest extends DataJpaTestBase {
     }
 
     @Sql(statements = """
-            INSERT INTO ingredient (id, created_at, updated_at, created_by, updated_by, version, title)
+            INSERT INTO ingredient (id, created_at, updated_at, created_by, updated_by, version, title, type)
                 VALUES ('00000000-0000-0000-0000-000000000001', '2026-01-01T00:00:00', '2026-01-01T00:00:00',
-                        'admin', 'admin', 0, 'First title');
+                        'admin', 'admin', 0, 'First title', 'OTHER');
             INSERT INTO recipe (id, created_at, updated_at, created_by, updated_by, version, title, description)
                 VALUES ('00000000-0000-0000-0000-000000000001', '2026-01-01T00:00:00', '2026-01-01T00:00:00',
                         'admin', 'admin', 0, 'First title', 'First description');
@@ -58,9 +58,9 @@ class RecipeRepositoryDataTest extends DataJpaTestBase {
     }
 
     @Sql(statements = """
-            INSERT INTO ingredient (id, created_at, updated_at, created_by, updated_by, version, title)
+            INSERT INTO ingredient (id, created_at, updated_at, created_by, updated_by, version, title, type)
                 VALUES ('00000000-0000-0000-0000-000000000001', '2026-01-01T00:00:00', '2026-01-01T00:00:00',
-                        'admin', 'admin', 0, 'First title');
+                        'admin', 'admin', 0, 'First title', 'OTHER');
             INSERT INTO recipe (id, created_at, updated_at, created_by, updated_by, version, title, description)
                 VALUES ('00000000-0000-0000-0000-000000000001', '2026-01-01T00:00:00', '2026-01-01T00:00:00',
                         'admin', 'admin', 0, 'First title', 'First description');

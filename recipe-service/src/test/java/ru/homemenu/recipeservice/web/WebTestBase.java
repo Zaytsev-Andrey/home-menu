@@ -21,9 +21,6 @@ public abstract class WebTestBase {
     private RecipeService recipeService;
 
     @MockitoBean
-    private RecipeMapper recipeMapper;
-
-    @MockitoBean
     private IngredientService ingredientService;
 
     @MockitoBean
