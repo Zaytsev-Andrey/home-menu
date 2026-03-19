@@ -1,5 +1,5 @@
 ### Find all Ingredients
-GET http://localhost:8080/api/v1/ingredients?size=30
+GET http://localhost:8080/api/v1/ingredients?types=VEGETABLE,MEAT&size=30
 Accept: application/json
 X-Request-ID: 18d39335-e5a9-4b7f-97d9-a4a03315a000
 
@@ -13,7 +13,8 @@ POST http://localhost:8080/api/v1/ingredients
 Content-Type: application/json
 
 {
-    "title": "Tea"
+    "title": "Beef",
+    "type": "MEAT"
 }
 
 ### Update Ingredient

@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import ru.homemenu.recipeservice.dto.PageResponse;
 import ru.homemenu.recipeservice.dto.SingleResponse;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientCreateDto;
+import ru.homemenu.recipeservice.ingredient.dto.IngredientFilter;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientReadDto;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientUpdateDto;
 import ru.homemenu.recipeservice.ingredient.http.controller.IngredientController;
@@ -38,12 +39,13 @@ class IngredientControllerTest {
     @Test
     void findAll_whenIngredientExist_returnListOfRecipeReadDto() {
         Pageable pageable = PageRequest.of(0, 10);
+        IngredientFilter ingredientFilter = IngredientFilter.builder().build();
         IngredientReadDto ingredientReadDto = IngredientReadDto.builder().build();
         PageImpl<IngredientReadDto> ingredientReadDtoPage = new PageImpl<>(Collections.singletonList(ingredientReadDto), pageable, 1);
         doReturn(ingredientReadDtoPage)
-                .when(ingredientService).findAll(pageable);
+                .when(ingredientService).findAll(ingredientFilter, pageable);
 
-        PageResponse<IngredientReadDto> result = ingredientController.findAll(pageable);
+        PageResponse<IngredientReadDto> result = ingredientController.findAll(ingredientFilter, pageable);
 
         assertThat(result.data()).hasSize(1);
         assertThat(result.data()).containsOnly(ingredientReadDto);
@@ -51,7 +53,26 @@ class IngredientControllerTest {
         assertThat(result.metadata().size()).isEqualTo(pageable.getPageSize());
         assertThat(result.metadata().totalElements()).isEqualTo(ingredientReadDtoPage.getTotalElements());
 
-        verify(ingredientService, Mockito.times(1)).findAll(pageable);
+        verify(ingredientService, Mockito.times(1)).findAll(ingredientFilter, pageable);
+        verifyNoMoreInteractions(ingredientService);
+    }
+
+    @Test
+    void findAll_whenIngredientNotExist_returnEmptyList() {
+        IngredientFilter ingredientFilter = IngredientFilter.builder().build();
+        Pageable pageable = PageRequest.of(0, 10);
+        PageImpl<IngredientReadDto> ingredientReadDtoPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+        doReturn(ingredientReadDtoPage)
+                .when(ingredientService).findAll(ingredientFilter, pageable);
+
+        PageResponse<IngredientReadDto> result = ingredientController.findAll(ingredientFilter, pageable);
+
+        assertThat(result.data()).isEmpty();
+        assertThat(result.metadata().page()).isEqualTo(pageable.getPageNumber());
+        assertThat(result.metadata().size()).isEqualTo(pageable.getPageSize());
+        assertThat(result.metadata().totalElements()).isEqualTo(ingredientReadDtoPage.getTotalElements());
+
+        Mockito.verify(ingredientService, Mockito.times(1)).findAll(ingredientFilter, pageable);
         verifyNoMoreInteractions(ingredientService);
     }
 
@@ -80,24 +101,6 @@ class IngredientControllerTest {
         assertThat(result.data()).isEqualTo(ingredientReadDto);
 
         verify(ingredientService, Mockito.times(1)).findById(ingredientId);
-        verifyNoMoreInteractions(ingredientService);
-    }
-
-    @Test
-    void findAll_whenIngredientNotExist_returnEmptyList() {
-        Pageable pageable = PageRequest.of(0, 10);
-        PageImpl<IngredientReadDto> ingredientReadDtoPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
-        doReturn(ingredientReadDtoPage)
-                .when(ingredientService).findAll(pageable);
-
-        PageResponse<IngredientReadDto> result = ingredientController.findAll(pageable);
-
-        assertThat(result.data()).isEmpty();
-        assertThat(result.metadata().page()).isEqualTo(pageable.getPageNumber());
-        assertThat(result.metadata().size()).isEqualTo(pageable.getPageSize());
-        assertThat(result.metadata().totalElements()).isEqualTo(ingredientReadDtoPage.getTotalElements());
-
-        Mockito.verify(ingredientService, Mockito.times(1)).findAll(pageable);
         verifyNoMoreInteractions(ingredientService);
     }
 

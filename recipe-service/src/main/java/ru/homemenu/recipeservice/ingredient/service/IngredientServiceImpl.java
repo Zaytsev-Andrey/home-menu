@@ -5,12 +5,15 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.homemenu.recipeservice.database.util.OptimisticLockUtil;
+import ru.homemenu.recipeservice.ingredient.database.criteria.IngredientSpecification;
 import ru.homemenu.recipeservice.ingredient.database.entity.Ingredient;
 import ru.homemenu.recipeservice.ingredient.database.repository.IngredientRepository;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientCreateDto;
+import ru.homemenu.recipeservice.ingredient.dto.IngredientFilter;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientReadDto;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientUpdateDto;
 import ru.homemenu.recipeservice.ingredient.http.exception.IngredientNotFoundException;
@@ -30,8 +33,9 @@ public class IngredientServiceImpl implements IngredientService {
     private final IngredientMapper ingredientMapper;
 
     @Override
-    public Page<IngredientReadDto> findAll(Pageable pageable) {
-        return ingredientRepository.findAll(pageable)
+    public Page<IngredientReadDto> findAll(IngredientFilter filter, Pageable pageable) {
+        Specification<Ingredient> ingredientSpecification = IngredientSpecification.create(filter);
+        return ingredientRepository.findAll(ingredientSpecification, pageable)
                 .map(ingredientMapper::toDto);
     }
 
