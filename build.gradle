@@ -46,6 +46,7 @@ project(":recipe-service") {
         runtimeOnly libs.postgresql
         runtimeOnly libs.micrometer.registry.prometheus
 
+        annotationProcessor libs.hibernate.processor
         annotationProcessor libs.mapstruct.processor
         annotationProcessor libs.lombok
         annotationProcessor libs.lombok.mapstruct.binding

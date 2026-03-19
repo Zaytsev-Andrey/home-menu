@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import ru.homemenu.recipeservice.ingredient.database.entity.Ingredient;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientCreateDto;
+import ru.homemenu.recipeservice.ingredient.dto.IngredientFilter;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientReadDto;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientUpdateDto;
 
@@ -13,7 +14,7 @@ import java.util.UUID;
 
 public interface IngredientService {
 
-    Page<IngredientReadDto> findAll(Pageable pageable);
+    Page<IngredientReadDto> findAll(IngredientFilter filter, Pageable pageable);
 
     Optional<IngredientReadDto> findById(UUID ingredientId);
 

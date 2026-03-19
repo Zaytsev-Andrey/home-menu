@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.homemenu.recipeservice.dto.PageResponse;
 import ru.homemenu.recipeservice.dto.SingleResponse;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientCreateDto;
+import ru.homemenu.recipeservice.ingredient.dto.IngredientFilter;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientReadDto;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientUpdateDto;
 import ru.homemenu.recipeservice.ingredient.http.exception.IngredientNotFoundException;
@@ -25,8 +26,8 @@ public class IngredientController {
     private final IngredientService ingredientService;
 
     @GetMapping
-    public PageResponse<IngredientReadDto> findAll(Pageable pageable) {
-        Page<IngredientReadDto> ingredientReadDtoPage = ingredientService.findAll(pageable);
+    public PageResponse<IngredientReadDto> findAll(IngredientFilter filter, Pageable pageable) {
+        Page<IngredientReadDto> ingredientReadDtoPage = ingredientService.findAll(filter, pageable);
         return PageResponse.of(ingredientReadDtoPage);
     }
 

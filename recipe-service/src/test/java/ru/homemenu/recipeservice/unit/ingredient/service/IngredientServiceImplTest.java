@@ -2,14 +2,17 @@ package ru.homemenu.recipeservice.unit.ingredient.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import ru.homemenu.recipeservice.http.exception.OptimisticLockValidationException;
 import ru.homemenu.recipeservice.ingredient.database.entity.Ingredient;
 import ru.homemenu.recipeservice.ingredient.database.repository.IngredientRepository;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientCreateDto;
+import ru.homemenu.recipeservice.ingredient.dto.IngredientFilter;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientReadDto;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientUpdateDto;
 import ru.homemenu.recipeservice.ingredient.http.exception.IngredientNotFoundException;
@@ -40,20 +43,23 @@ class IngredientServiceImplTest {
     @Test
     void findAll_returnPageOfIngredientReadDtos() {
         Pageable pageable = PageRequest.of(0, 10, Sort.by("title"));
+        IngredientFilter ingredientFilter = IngredientFilter.builder()
+                .title("first")
+                .build();
         Ingredient ingredient = Ingredient.builder().build();
         IngredientReadDto ingredientReadDto = IngredientReadDto.builder().build();
         Page<Ingredient> ingredientPage = new PageImpl<>(Collections.singletonList(ingredient), pageable, 1);
         doReturn(ingredientPage)
-                .when(ingredientRepository).findAll(pageable);
+                .when(ingredientRepository).findAll(ArgumentMatchers.<Specification<Ingredient>>any(), any(Pageable.class));
         doReturn(ingredientReadDto)
                 .when(ingredientMapper).toDto(ingredient);
 
-        Page<IngredientReadDto> result = ingredientService.findAll(pageable);
+        Page<IngredientReadDto> result = ingredientService.findAll(ingredientFilter, pageable);
 
         assertThat(result.getContent()).containsExactly(ingredientReadDto);
         assertThat(result.getTotalElements()).isEqualTo(1);
 
-        verify(ingredientRepository).findAll(pageable);
+        verify(ingredientRepository).findAll(ArgumentMatchers.<Specification<Ingredient>>any(), any(Pageable.class));
         verify(ingredientMapper).toDto(ingredient);
         verifyNoMoreInteractions(ingredientRepository, ingredientMapper);
     }

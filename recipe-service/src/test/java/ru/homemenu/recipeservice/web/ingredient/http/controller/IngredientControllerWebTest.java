@@ -4,12 +4,14 @@ import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.homemenu.recipeservice.dto.HttpErrorCode;
 import ru.homemenu.recipeservice.ingredient.database.entity.IngredientType;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientCreateDto;
+import ru.homemenu.recipeservice.ingredient.dto.IngredientFilter;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientReadDto;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientUpdateDto;
 import ru.homemenu.recipeservice.web.WebTestBase;
@@ -36,7 +38,7 @@ class IngredientControllerWebTest extends WebTestBase {
         PageRequest pageable = PageRequest.of(0, 10);
         PageImpl<IngredientReadDto> ingredientPage = new PageImpl<>(Collections.emptyList(), pageable, 1);
         doReturn(ingredientPage)
-                .when(getIngredientService()).findAll(pageable);
+                .when(getIngredientService()).findAll(any(IngredientFilter.class), any(Pageable.class));
 
         mockMvc.perform(get("/api/v1/ingredients")
                         .param("page", "0")
@@ -66,7 +68,7 @@ class IngredientControllerWebTest extends WebTestBase {
         PageRequest pageable = PageRequest.of(0, 10);
         PageImpl<IngredientReadDto> ingredientPage = new PageImpl<>(Collections.singletonList(ingredientReadDto), pageable, 1);
         doReturn(ingredientPage)
-                .when(getIngredientService()).findAll(PageRequest.of(0, 10));
+                .when(getIngredientService()).findAll(any(IngredientFilter.class), any(Pageable.class));
 
         mockMvc.perform(get("/api/v1/ingredients")
                         .param("page", "0")
