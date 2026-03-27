@@ -9,15 +9,13 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.homemenu.recipeservice.dto.PageResponse;
 import ru.homemenu.recipeservice.dto.SingleResponse;
-import ru.homemenu.recipeservice.recipe.database.entity.Recipe;
 import ru.homemenu.recipeservice.recipe.dto.RecipeCreateDto;
+import ru.homemenu.recipeservice.recipe.dto.RecipeFilter;
 import ru.homemenu.recipeservice.recipe.dto.RecipeReadDto;
 import ru.homemenu.recipeservice.recipe.dto.RecipeUpdateDto;
 import ru.homemenu.recipeservice.recipe.http.exception.RecipeNotFoundException;
-import ru.homemenu.recipeservice.recipe.mapper.RecipeMapper;
 import ru.homemenu.recipeservice.recipe.service.RecipeService;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -28,8 +26,8 @@ public class RecipeController {
     private final RecipeService recipeService;
 
     @GetMapping
-    public PageResponse<RecipeReadDto> findAll(Pageable pageable) {
-        Page<RecipeReadDto> recipeReadDtoPage = recipeService.findAll(pageable);
+    public PageResponse<RecipeReadDto> findAll(RecipeFilter filter, Pageable pageable) {
+        Page<RecipeReadDto> recipeReadDtoPage = recipeService.findAll(filter, pageable);
         return PageResponse.of(recipeReadDtoPage);
     }
 

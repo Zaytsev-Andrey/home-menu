@@ -57,22 +57,20 @@ class RecipeServiceImplTest {
     @Test
     void findAll() {
         PageRequest pageable = PageRequest.of(0, 10);
-        Recipe recipe = Recipe.builder().build();
-        PageImpl<Recipe> recipePage = new PageImpl<>(Collections.singletonList(recipe), pageable, 1);
+        RecipeFilter recipeFilter = RecipeFilter.builder().build();
         RecipeReadDto recipeReadDto = RecipeReadDto.builder().build();
+        PageImpl<RecipeReadDto> recipePage = new PageImpl<>(Collections.singletonList(recipeReadDto), pageable, 1);
         doReturn(recipePage)
-                .when(recipeRepository).findAll(pageable);
-        doReturn(recipeReadDto)
-                .when(recipeMapper).toDto(recipe);
+                .when(recipeRepository).search(recipeFilter, pageable);
 
-        Page<RecipeReadDto> result = recipeService.findAll(pageable);
+        Page<RecipeReadDto> result = recipeService.findAll(recipeFilter, pageable);
 
         assertThat(result).hasSize(1);
         assertThat(result).containsOnly(recipeReadDto);
 
-        verify(recipeRepository, Mockito.times(1)).findAll(pageable);
-        verify(recipeMapper, Mockito.times(1)).toDto(recipe);
-        verifyNoMoreInteractions(recipeRepository, recipeMapper);
+        verify(recipeRepository, Mockito.times(1)).search(recipeFilter, pageable);
+        verifyNoMoreInteractions(recipeRepository);
+        verifyNoInteractions(recipeMapper);
     }
 
     @Test

@@ -1,5 +1,5 @@
 ### Find all Recipes
-GET http://localhost:8080/api/v1/recipes?size=300
+GET http://localhost:8080/api/v1/recipes?ingredientIds=9ef2c7a9-aa1c-4226-bf4c-2696e570eb0c&size=300
 Accept: application/json
 X-Request-ID: 18d39335-e5a9-4b7f-97d9-a4a03315a000
 
@@ -12,7 +12,7 @@ Content-Type: application/json
     "description": "Boil milk...",
     "recipeIngredientDtos": [
       {
-        "ingredientId": "9b39f2bd-2ce7-442c-9b21-746714b30a52",
+        "ingredientId": "9ef2c7a9-aa1c-4226-bf4c-2696e570eb0c",
         "quantity": 2
       }
     ]

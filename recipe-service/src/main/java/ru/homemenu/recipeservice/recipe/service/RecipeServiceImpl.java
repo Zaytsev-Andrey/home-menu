@@ -43,9 +43,8 @@ public class RecipeServiceImpl implements RecipeService {
     private final RecipeProperty recipeProperty;
 
     @Override
-    public Page<RecipeReadDto> findAll(Pageable pageable) {
-        return recipeRepository.findAll(pageable)
-                .map(recipeMapper::toDto);
+    public Page<RecipeReadDto> findAll(RecipeFilter filter, Pageable pageable) {
+        return recipeRepository.search(filter, pageable);
     }
 
     @Override
