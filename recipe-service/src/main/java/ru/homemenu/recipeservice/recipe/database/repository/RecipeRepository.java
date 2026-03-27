@@ -7,7 +7,8 @@ import ru.homemenu.recipeservice.recipe.database.entity.Recipe;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface RecipeRepository extends JpaRepository<Recipe, UUID> {
+public interface RecipeRepository extends JpaRepository<Recipe, UUID>,
+        RecipeRepositoryCustom {
 
     @EntityGraph(attributePaths = {
             "recipeIngredients",

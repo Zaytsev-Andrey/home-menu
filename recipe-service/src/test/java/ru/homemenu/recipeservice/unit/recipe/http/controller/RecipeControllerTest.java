@@ -12,11 +12,11 @@ import org.springframework.data.domain.Pageable;
 import ru.homemenu.recipeservice.dto.PageResponse;
 import ru.homemenu.recipeservice.dto.SingleResponse;
 import ru.homemenu.recipeservice.recipe.dto.RecipeCreateDto;
+import ru.homemenu.recipeservice.recipe.dto.RecipeFilter;
 import ru.homemenu.recipeservice.recipe.dto.RecipeReadDto;
 import ru.homemenu.recipeservice.recipe.dto.RecipeUpdateDto;
 import ru.homemenu.recipeservice.recipe.http.controller.RecipeController;
 import ru.homemenu.recipeservice.recipe.http.exception.RecipeNotFoundException;
-import ru.homemenu.recipeservice.recipe.mapper.RecipeMapper;
 import ru.homemenu.recipeservice.recipe.service.RecipeService;
 
 import java.util.Collections;
@@ -39,12 +39,13 @@ class RecipeControllerTest {
     @Test
     void findAll_whenRecipeExist_returnListOfRecipeReadDto() {
         Pageable pageable = PageRequest.of(0, 10);
+        RecipeFilter recipeFilter = RecipeFilter.builder().build();
         RecipeReadDto recipeReadDto = RecipeReadDto.builder().build();
         PageImpl<RecipeReadDto> recipePage = new PageImpl<>(Collections.singletonList(recipeReadDto), pageable, 1);
         doReturn(recipePage)
-                .when(recipeService).findAll(pageable);
+                .when(recipeService).findAll(recipeFilter, pageable);
 
-        PageResponse<RecipeReadDto> result = controller.findAll(pageable);
+        PageResponse<RecipeReadDto> result = controller.findAll(recipeFilter, pageable);
 
         assertThat(result.data()).hasSize(1);
         assertThat(result.data()).containsOnly(recipeReadDto);
@@ -52,7 +53,7 @@ class RecipeControllerTest {
         assertThat(result.metadata().size()).isEqualTo(pageable.getPageSize());
         assertThat(result.metadata().totalElements()).isEqualTo(recipePage.getTotalElements());
 
-        verify(recipeService, Mockito.times(1)).findAll(pageable);
+        verify(recipeService, Mockito.times(1)).findAll(recipeFilter, pageable);
         verifyNoMoreInteractions(recipeService);
     }
 
@@ -87,18 +88,19 @@ class RecipeControllerTest {
     @Test
     void findAll_whenRecipeNotExist_returnEmptyList() {
         Pageable pageable = PageRequest.of(0, 10);
+        RecipeFilter recipeFilter = RecipeFilter.builder().build();
         PageImpl<RecipeReadDto> recipePage = new PageImpl<>(Collections.emptyList(), pageable, 0);
         doReturn(recipePage)
-                .when(recipeService).findAll(pageable);
+                .when(recipeService).findAll(recipeFilter, pageable);
 
-        PageResponse<RecipeReadDto> result = controller.findAll(pageable);
+        PageResponse<RecipeReadDto> result = controller.findAll(recipeFilter, pageable);
 
         assertThat(result.data()).isEmpty();
         assertThat(result.metadata().page()).isEqualTo(pageable.getPageNumber());
         assertThat(result.metadata().size()).isEqualTo(pageable.getPageSize());
         assertThat(result.metadata().totalElements()).isEqualTo(recipePage.getTotalElements());
 
-        Mockito.verify(recipeService, Mockito.times(1)).findAll(pageable);
+        Mockito.verify(recipeService, Mockito.times(1)).findAll(recipeFilter, pageable);
         verifyNoMoreInteractions(recipeService);
     }
 

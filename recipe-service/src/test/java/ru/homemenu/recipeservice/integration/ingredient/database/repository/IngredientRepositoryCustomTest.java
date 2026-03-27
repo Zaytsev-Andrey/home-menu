@@ -1,14 +1,15 @@
-package ru.homemenu.recipeservice.data.ingredient.database.criteria;
+package ru.homemenu.recipeservice.integration.ingredient.database.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.jdbc.Sql;
-import ru.homemenu.recipeservice.data.DataJpaTestBase;
-import ru.homemenu.recipeservice.ingredient.database.criteria.IngredientSpecification;
-import ru.homemenu.recipeservice.ingredient.database.entity.Ingredient;
 import ru.homemenu.recipeservice.ingredient.database.entity.IngredientType;
 import ru.homemenu.recipeservice.ingredient.database.repository.IngredientRepository;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientFilter;
+import ru.homemenu.recipeservice.ingredient.dto.IngredientReadDto;
+import ru.homemenu.recipeservice.integration.IntegrationTestBase;
 
 import java.util.Collections;
 import java.util.List;
@@ -17,7 +18,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RequiredArgsConstructor
-class IngredientSpecificationDataTest extends DataJpaTestBase {
+class IngredientRepositoryCustomTest extends IntegrationTestBase {
 
     private final IngredientRepository ingredientRepository;
 
@@ -32,13 +33,14 @@ class IngredientSpecificationDataTest extends DataJpaTestBase {
                 VALUES ('00000000-0000-0000-0000-000000000003', '2026-01-01T00:00:00', '2026-01-01T00:00:00',
                         'admin', 'admin', 0, 'Third title', 'OTHER');""")
     @Test
-    void create_whenTitleAndTypesAreNull_returnsAllIngredients() {
+    void search_whenTitleAndTypesAreNull_returnsAllIngredients() {
         IngredientFilter filter = IngredientFilter.builder().build();
+        PageRequest pageable = PageRequest.of(0, 10);
 
-        List<Ingredient> result = ingredientRepository.findAll(IngredientSpecification.create(filter));
+        Page<IngredientReadDto> result = ingredientRepository.search(filter, pageable);
 
         assertThat(result)
-                .extracting(Ingredient::getId)
+                .extracting(IngredientReadDto::id)
                 .hasSize(3)
                 .containsExactlyInAnyOrder(
                         UUID.fromString("00000000-0000-0000-0000-000000000001"),
@@ -58,15 +60,16 @@ class IngredientSpecificationDataTest extends DataJpaTestBase {
                 VALUES ('00000000-0000-0000-0000-000000000003', '2026-01-01T00:00:00', '2026-01-01T00:00:00',
                         'admin', 'admin', 0, 'Third title', 'OTHER');""")
     @Test
-    void create_whenTitleIsEmpty_returnsAllIngredients() {
+    void search_whenTitleIsEmpty_returnsAllIngredients() {
         IngredientFilter filter = IngredientFilter.builder()
                 .title("")
                 .build();
+        PageRequest pageable = PageRequest.of(0, 10);
 
-        List<Ingredient> result = ingredientRepository.findAll(IngredientSpecification.create(filter));
+        Page<IngredientReadDto> result = ingredientRepository.search(filter, pageable);
 
         assertThat(result)
-                .extracting(Ingredient::getId)
+                .extracting(IngredientReadDto::id)
                 .hasSize(3)
                 .containsExactlyInAnyOrder(
                         UUID.fromString("00000000-0000-0000-0000-000000000001"),
@@ -86,15 +89,16 @@ class IngredientSpecificationDataTest extends DataJpaTestBase {
                 VALUES ('00000000-0000-0000-0000-000000000003', '2026-01-01T00:00:00', '2026-01-01T00:00:00',
                         'admin', 'admin', 0, 'Third title', 'OTHER');""")
     @Test
-    void create_whenTitleExist_returnsIngredientsContainingTitleIgnoreCase() {
+    void search_whenTitleExist_returnsIngredientsContainingTitleIgnoreCase() {
         IngredientFilter filter = IngredientFilter.builder()
                 .title("Cond")
                 .build();
+        PageRequest pageable = PageRequest.of(0, 10);
 
-        List<Ingredient> result = ingredientRepository.findAll(IngredientSpecification.create(filter));
+        Page<IngredientReadDto> result = ingredientRepository.search(filter, pageable);
 
         assertThat(result)
-                .extracting(Ingredient::getId)
+                .extracting(IngredientReadDto::id)
                 .hasSize(1)
                 .containsExactlyInAnyOrder(
                         UUID.fromString("00000000-0000-0000-0000-000000000002")
@@ -112,15 +116,16 @@ class IngredientSpecificationDataTest extends DataJpaTestBase {
                 VALUES ('00000000-0000-0000-0000-000000000003', '2026-01-01T00:00:00', '2026-01-01T00:00:00',
                         'admin', 'admin', 0, 'Third title', 'OTHER');""")
     @Test
-    void create_whenTypesProvided_returnsIngredientsWithMatchingTypes() {
+    void search_whenTypesProvided_returnsIngredientsWithMatchingTypes() {
         IngredientFilter filter = IngredientFilter.builder()
                 .types(List.of(IngredientType.MEAT, IngredientType.OTHER))
                 .build();
+        PageRequest pageable = PageRequest.of(0, 10);
 
-        List<Ingredient> result = ingredientRepository.findAll(IngredientSpecification.create(filter));
+        Page<IngredientReadDto> result = ingredientRepository.search(filter, pageable);
 
         assertThat(result)
-                .extracting(Ingredient::getId)
+                .extracting(IngredientReadDto::id)
                 .hasSize(2)
                 .containsExactlyInAnyOrder(
                         UUID.fromString("00000000-0000-0000-0000-000000000002"),
@@ -139,15 +144,16 @@ class IngredientSpecificationDataTest extends DataJpaTestBase {
                 VALUES ('00000000-0000-0000-0000-000000000003', '2026-01-01T00:00:00', '2026-01-01T00:00:00',
                         'admin', 'admin', 0, 'Third title', 'OTHER');""")
     @Test
-    void create_whenTypesEmpty_returnsAllIngredients() {
+    void search_whenTypesEmpty_returnsAllIngredients() {
         IngredientFilter filter = IngredientFilter.builder()
                 .types(Collections.emptyList())
                 .build();
+        PageRequest pageable = PageRequest.of(0, 10);
 
-        List<Ingredient> result = ingredientRepository.findAll(IngredientSpecification.create(filter));
+        Page<IngredientReadDto> result = ingredientRepository.search(filter, pageable);
 
         assertThat(result)
-                .extracting(Ingredient::getId)
+                .extracting(IngredientReadDto::id)
                 .hasSize(3)
                 .containsExactlyInAnyOrder(
                         UUID.fromString("00000000-0000-0000-0000-000000000001"),
@@ -167,16 +173,17 @@ class IngredientSpecificationDataTest extends DataJpaTestBase {
                 VALUES ('00000000-0000-0000-0000-000000000003', '2026-01-01T00:00:00', '2026-01-01T00:00:00',
                         'admin', 'admin', 0, 'Third title', 'OTHER');""")
     @Test
-    void create_whenTitleAndTypesProvided_returnsIntersection() {
+    void search_whenTitleAndTypesProvided_returnsIntersection() {
         IngredientFilter filter = IngredientFilter.builder()
                 .title("second")
                 .types(List.of(IngredientType.FRUIT, IngredientType.OTHER))
                 .build();
+        PageRequest pageable = PageRequest.of(0, 10);
 
-        List<Ingredient> result = ingredientRepository.findAll(IngredientSpecification.create(filter));
+        Page<IngredientReadDto> result = ingredientRepository.search(filter, pageable);
 
         assertThat(result)
-                .extracting(Ingredient::getId)
+                .extracting(IngredientReadDto::id)
                 .hasSize(1)
                 .containsExactlyInAnyOrder(
                         UUID.fromString("00000000-0000-0000-0000-000000000002")
@@ -194,13 +201,14 @@ class IngredientSpecificationDataTest extends DataJpaTestBase {
                 VALUES ('00000000-0000-0000-0000-000000000003', '2026-01-01T00:00:00', '2026-01-01T00:00:00',
                         'admin', 'admin', 0, 'Third title', 'OTHER');""")
     @Test
-    void create_whenNoIngredientsMatch_returnsEmptyList() {
+    void search_whenNoIngredientsMatch_returnsEmptyList() {
         IngredientFilter filter = IngredientFilter.builder()
                 .title("second")
                 .types(Collections.singletonList(IngredientType.FRUIT))
                 .build();
+        PageRequest pageable = PageRequest.of(0, 10);
 
-        List<Ingredient> result = ingredientRepository.findAll(IngredientSpecification.create(filter));
+        Page<IngredientReadDto> result = ingredientRepository.search(filter, pageable);
 
         assertThat(result).isEmpty();
     }

@@ -2,12 +2,10 @@ package ru.homemenu.recipeservice.unit.ingredient.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
-import org.springframework.data.jpa.domain.Specification;
 import ru.homemenu.recipeservice.http.exception.OptimisticLockValidationException;
 import ru.homemenu.recipeservice.ingredient.database.entity.Ingredient;
 import ru.homemenu.recipeservice.ingredient.database.repository.IngredientRepository;
@@ -46,22 +44,19 @@ class IngredientServiceImplTest {
         IngredientFilter ingredientFilter = IngredientFilter.builder()
                 .title("first")
                 .build();
-        Ingredient ingredient = Ingredient.builder().build();
         IngredientReadDto ingredientReadDto = IngredientReadDto.builder().build();
-        Page<Ingredient> ingredientPage = new PageImpl<>(Collections.singletonList(ingredient), pageable, 1);
+        Page<IngredientReadDto> ingredientPage = new PageImpl<>(Collections.singletonList(ingredientReadDto), pageable, 1);
         doReturn(ingredientPage)
-                .when(ingredientRepository).findAll(ArgumentMatchers.<Specification<Ingredient>>any(), any(Pageable.class));
-        doReturn(ingredientReadDto)
-                .when(ingredientMapper).toDto(ingredient);
+                .when(ingredientRepository).search(ingredientFilter, pageable);
 
         Page<IngredientReadDto> result = ingredientService.findAll(ingredientFilter, pageable);
 
         assertThat(result.getContent()).containsExactly(ingredientReadDto);
         assertThat(result.getTotalElements()).isEqualTo(1);
 
-        verify(ingredientRepository).findAll(ArgumentMatchers.<Specification<Ingredient>>any(), any(Pageable.class));
-        verify(ingredientMapper).toDto(ingredient);
-        verifyNoMoreInteractions(ingredientRepository, ingredientMapper);
+        verify(ingredientRepository, times(1)).search(ingredientFilter, pageable);
+        verifyNoMoreInteractions(ingredientRepository);
+        verifyNoInteractions(ingredientMapper);
     }
 
     @Test

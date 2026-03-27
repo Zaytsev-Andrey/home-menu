@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.springframework.boot) apply false
+    alias(libs.plugins.jooq.codegen.gradle)
 }
 
 subprojects {
@@ -23,6 +24,9 @@ subprojects {
 project(":recipe-service") {
     apply plugin: libs.plugins.springframework.boot.get().pluginId
     apply plugin: libs.plugins.dependency.management.get().pluginId
+    apply plugin: libs.plugins.jooq.codegen.gradle.get().pluginId
+
+    ext['jooq.version'] = libs.versions.jooq.codegen.gradle.get()
 
     java {
         toolchain {
@@ -35,6 +39,7 @@ project(":recipe-service") {
         implementation libs.spring.boot.starter.webmvc
         implementation libs.spring.boot.starter.validation
         implementation libs.spring.boot.starter.data.jpa
+        implementation libs.spring.boot.starter.jooq
         implementation libs.spring.boot.starter.liquibase
         implementation libs.spring.boot.starter.cache
         implementation libs.spring.boot.starter.data.redis
@@ -46,7 +51,6 @@ project(":recipe-service") {
         runtimeOnly libs.postgresql
         runtimeOnly libs.micrometer.registry.prometheus
 
-        annotationProcessor libs.hibernate.processor
         annotationProcessor libs.mapstruct.processor
         annotationProcessor libs.lombok
         annotationProcessor libs.lombok.mapstruct.binding
@@ -54,6 +58,7 @@ project(":recipe-service") {
         testImplementation libs.testcontainers.postgresql
         testImplementation libs.spring.boot.starter.actuator.test
         testImplementation libs.spring.boot.starter.data.jpa.test
+        testImplementation libs.spring.boot.starter.jooq.test
         testImplementation libs.spring.boot.starter.cache.test
         testImplementation libs.spring.boot.starter.data.redis.test
         testImplementation libs.spring.boot.starter.webmvc.test
@@ -63,6 +68,12 @@ project(":recipe-service") {
         testCompileOnly libs.lombok
 
         testAnnotationProcessor libs.lombok
+
+        jooqCodegen libs.postgresql
+    }
+
+    tasks.named('compileJava') {
+        dependsOn 'jooqCodegen'
     }
 
     tasks.named('test') {
@@ -75,6 +86,37 @@ project(":recipe-service") {
 
     tasks.named('processResources') {
         expand(project.properties)
+    }
+
+    jooq {
+        configuration {
+            jdbc {
+                driver = 'org.postgresql.Driver'
+                url = 'jdbc:postgresql://localhost:5432/recipe_service_db'
+                user = 'postgres'
+                password = 'password'
+            }
+            generator {
+                name = 'org.jooq.codegen.DefaultGenerator'
+                database {
+                    name = 'org.jooq.meta.postgres.PostgresDatabase'
+                    inputSchema = 'public'
+                    excludes = 'databasechangelog|databasechangeloglock'
+                }
+                target {
+                    packageName = 'ru.homemenu.recipeservice.jooq'
+                    directory = "${buildDir}/generated-src/jooq/main"
+                }
+            }
+        }
+    }
+
+    sourceSets {
+        main {
+            java {
+                srcDir "${buildDir}/generated-src/jooq/main"
+            }
+        }
     }
 }
 

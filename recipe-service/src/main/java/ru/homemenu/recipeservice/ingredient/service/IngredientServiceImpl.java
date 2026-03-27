@@ -5,11 +5,9 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.homemenu.recipeservice.database.util.OptimisticLockUtil;
-import ru.homemenu.recipeservice.ingredient.database.criteria.IngredientSpecification;
 import ru.homemenu.recipeservice.ingredient.database.entity.Ingredient;
 import ru.homemenu.recipeservice.ingredient.database.repository.IngredientRepository;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientCreateDto;
@@ -34,9 +32,7 @@ public class IngredientServiceImpl implements IngredientService {
 
     @Override
     public Page<IngredientReadDto> findAll(IngredientFilter filter, Pageable pageable) {
-        Specification<Ingredient> ingredientSpecification = IngredientSpecification.create(filter);
-        return ingredientRepository.findAll(ingredientSpecification, pageable)
-                .map(ingredientMapper::toDto);
+        return ingredientRepository.search(filter, pageable);
     }
 
     @Cacheable(cacheNames = "ingredientById", key = "#ingredientId")

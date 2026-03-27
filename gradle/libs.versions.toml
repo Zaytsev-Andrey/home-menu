@@ -5,18 +5,19 @@ mapstruct = '1.6.3'
 lombok-mapstruct-binding = '0.2.0'
 loki-logback-appender = '2.0.3'
 testcontainers-postgresql = '1.21.4'
-hibernate-processor = '7.3.0.Final'
+jooq-codegen-gradle = '3.20.11'
 
 [plugins]
 springframework-boot = { id = 'org.springframework.boot', version.ref = 'springframework-boot' }
 dependency-management = { id = 'io.spring.dependency-management', version.ref = 'dependency-management' }
+jooq-codegen-gradle = { id = "org.jooq.jooq-codegen-gradle", version.ref = 'jooq-codegen-gradle' }
 
 [libraries]
 spring-boot-starter-actuator = { module = 'org.springframework.boot:spring-boot-starter-actuator' }
 spring-boot-starter-webmvc = { module = 'org.springframework.boot:spring-boot-starter-webmvc' }
 spring-boot-starter-validation = { module = 'org.springframework.boot:spring-boot-starter-validation' }
 spring-boot-starter-data-jpa = { module = 'org.springframework.boot:spring-boot-starter-data-jpa' }
-hibernate-processor = { module = 'org.hibernate.orm:hibernate-processor', version.ref =  'hibernate-processor'}
+spring-boot-starter-jooq = { module = 'org.springframework.boot:spring-boot-starter-jooq' }
 spring-boot-starter-liquibase = { module = 'org.springframework.boot:spring-boot-starter-liquibase'}
 postgresql = { module = 'org.postgresql:postgresql' }
 spring-boot-starter-cache = { module = 'org.springframework.boot:spring-boot-starter-cache' }
@@ -29,6 +30,7 @@ loki-logback-appender = { module = 'com.github.loki4j:loki-logback-appender', ve
 testcontainers-postgresql = { module = 'org.testcontainers:postgresql', version.ref = 'testcontainers-postgresql' }
 spring-boot-starter-actuator-test = { module = 'org.springframework.boot:spring-boot-starter-actuator-test' }
 spring-boot-starter-data-jpa-test = { module = 'org.springframework.boot:spring-boot-starter-data-jpa-test' }
+spring-boot-starter-jooq-test = { module = 'org.springframework.boot:spring-boot-starter-jooq-test' }
 spring-boot-starter-cache-test = { module = 'org.springframework.boot:spring-boot-starter-cache-test' }
 spring-boot-starter-data-redis-test = { module = 'org.springframework.boot:spring-boot-starter-data-redis-test' }
 spring-boot-starter-webmvc-test = { module = 'org.springframework.boot:spring-boot-starter-webmvc-test' }
