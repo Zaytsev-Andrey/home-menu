@@ -13,9 +13,11 @@ import ru.homemenu.recipeservice.ingredient.dto.IngredientCreateDto;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientFilter;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientReadDto;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientUpdateDto;
+import ru.homemenu.recipeservice.ingredient.http.exception.IngredientIsUsingInRecipeException;
 import ru.homemenu.recipeservice.ingredient.http.exception.IngredientNotFoundException;
 import ru.homemenu.recipeservice.ingredient.mapper.IngredientMapper;
 import ru.homemenu.recipeservice.ingredient.service.IngredientServiceImpl;
+import ru.homemenu.recipeservice.recipe.service.RecipeIngredientService;
 
 import java.util.Collections;
 import java.util.List;
@@ -28,6 +30,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class IngredientServiceImplTest {
+
+    @Mock
+    private RecipeIngredientService recipeIngredientService;
 
     @Mock
     private IngredientRepository ingredientRepository;
@@ -192,19 +197,41 @@ class IngredientServiceImplTest {
     }
 
     @Test
-    void delete_whenIngredientExistsAndVersionMatches_deleteIngredient() {
+    void delete_whenIngredientExistsAndVersionMatchesAndIngredientNotUsing_deleteIngredient() {
         UUID ingredientId = UUID.randomUUID();
         Ingredient ingredient = Ingredient.builder()
                 .version(1L)
                 .build();
         doReturn(Optional.of(ingredient))
                 .when(ingredientRepository).findById(ingredientId);
+        doReturn(false)
+                .when(recipeIngredientService).existsByIngredientId(ingredientId);
 
         ingredientService.delete(ingredientId, 1L);
 
-        verify(ingredientRepository).findById(ingredientId);
-        verify(ingredientRepository).delete(ingredient);
-        verifyNoMoreInteractions(ingredientRepository);
+        verify(ingredientRepository, times(1)).findById(ingredientId);
+        verify(recipeIngredientService, times(1)).existsByIngredientId(ingredientId);
+        verify(ingredientRepository, times(1)).delete(ingredient);
+        verifyNoMoreInteractions(ingredientRepository, recipeIngredientService);
+    }
+
+    @Test
+    void delete_whenIngredientExistsAndVersionMatchesAndIngredientIsUsing_throwException() {
+        UUID ingredientId = UUID.randomUUID();
+        Ingredient ingredient = Ingredient.builder()
+                .version(1L)
+                .build();
+        doReturn(Optional.of(ingredient))
+                .when(ingredientRepository).findById(ingredientId);
+        doReturn(true)
+                .when(recipeIngredientService).existsByIngredientId(ingredientId);
+
+        assertThatThrownBy(() -> ingredientService.delete(ingredientId, 1L))
+                .isInstanceOf(IngredientIsUsingInRecipeException.class);
+
+        verify(ingredientRepository, times(1)).findById(ingredientId);
+        verify(recipeIngredientService, times(1)).existsByIngredientId(ingredientId);
+        verifyNoMoreInteractions(ingredientRepository, recipeIngredientService);
     }
 
     @Test

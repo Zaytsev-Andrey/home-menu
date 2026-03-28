@@ -28,4 +28,4 @@ Content-Type: application/json
 
 
 ### Delete Ingredient
-DELETE http://localhost:8080/api/v1/ingredients/287b855b-588f-48d8-94e1-8fef49624a5e?version=3
+DELETE http://localhost:8080/api/v1/ingredients/9ef2c7a9-aa1c-4226-bf4c-2696e570eb0c?version=0
