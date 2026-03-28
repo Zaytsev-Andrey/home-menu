@@ -4,6 +4,8 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -47,6 +49,7 @@ public class RecipeServiceImpl implements RecipeService {
         return recipeRepository.search(filter, pageable);
     }
 
+    @Cacheable(cacheNames = "recipeById", key = "#recipeId")
     @Override
     public Optional<RecipeReadDto> findById(UUID recipeId) {
         return recipeRepository.findById(recipeId)
@@ -115,6 +118,7 @@ public class RecipeServiceImpl implements RecipeService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = "recipeById", key = "#recipeId")
     @Override
     public RecipeReadDto update(UUID recipeId, RecipeUpdateDto recipeUpdateDto) {
         List<RecipeIngredientUpdateDto> recipeIngredientUpdateDtos = recipeUpdateDto.recipeIngredientDtos();
@@ -179,6 +183,7 @@ public class RecipeServiceImpl implements RecipeService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = "recipeById", key = "#recipeId")
     @Override
     public void delete(UUID recipeId, Long version) {
         Recipe recipe = recipeRepository.findById(recipeId)

@@ -14,8 +14,10 @@ import ru.homemenu.recipeservice.ingredient.dto.IngredientCreateDto;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientFilter;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientReadDto;
 import ru.homemenu.recipeservice.ingredient.dto.IngredientUpdateDto;
+import ru.homemenu.recipeservice.ingredient.http.exception.IngredientIsUsingInRecipeException;
 import ru.homemenu.recipeservice.ingredient.http.exception.IngredientNotFoundException;
 import ru.homemenu.recipeservice.ingredient.mapper.IngredientMapper;
+import ru.homemenu.recipeservice.recipe.service.RecipeIngredientService;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +27,8 @@ import java.util.UUID;
 @Service
 @Transactional(readOnly = true)
 public class IngredientServiceImpl implements IngredientService {
+
+    private final RecipeIngredientService recipeIngredientService;
 
     private final IngredientRepository ingredientRepository;
 
@@ -77,6 +81,10 @@ public class IngredientServiceImpl implements IngredientService {
                 .orElseThrow(() -> new IngredientNotFoundException(ingredientId));
 
         OptimisticLockUtil.valid(ingredient, version);
+
+        if (recipeIngredientService.existsByIngredientId(ingredientId)) {
+            throw new IngredientIsUsingInRecipeException(ingredientId);
+        }
 
         ingredientRepository.delete(ingredient);
     }

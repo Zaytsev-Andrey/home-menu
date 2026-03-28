@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
+import org.slf4j.spi.LoggingEventBuilder;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,35 +44,20 @@ public class RestControllerExceptionHandler {
                     .add(error.getDefaultMessage());
         }
 
-        HttpErrorResponse httpErrorResponse = HttpErrorResponse.builder()
-                .path(URI.create(request.getRequestURI()))
-                .status(HttpStatus.BAD_REQUEST.value())
-                .errorCode(HttpErrorCode.REQUEST_VALIDATION_FAILED)
-                .timestamp(Instant.now())
+        HttpErrorResponse httpErrorResponse = errorResponseBuilder(HttpStatus.BAD_REQUEST, HttpErrorCode.REQUEST_VALIDATION_FAILED, request.getRequestURI())
                 .errors(errors)
                 .build();
 
-        logRequestValidationFailed(errors);
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(httpErrorResponse);
-    }
-
-    private static void logRequestValidationFailed(Object errors) {
-        log.atWarn()
-                .addKeyValue(StructuredLogField.EVENT, StructuredLogEvent.REQUEST_VALIDATION_FAILED)
-                .addKeyValue(StructuredLogField.ERROR_CODE, HttpErrorCode.REQUEST_VALIDATION_FAILED)
+        warnLogBuilder(StructuredLogEvent.REQUEST_VALIDATION_FAILED, HttpErrorCode.REQUEST_VALIDATION_FAILED)
                 .addKeyValue(StructuredLogField.ERRORS, errors)
                 .log("Request validation failed");
+
+        return createResponseEntity(HttpStatus.BAD_REQUEST, httpErrorResponse);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     ResponseEntity<HttpErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException ex, HttpServletRequest request) {
-        HttpErrorResponse.HttpErrorResponseBuilder errorResponseBuilder = HttpErrorResponse.builder()
-                .timestamp(Instant.now())
-                .status(HttpStatus.CONFLICT.value())
-                .errorCode(HttpErrorCode.CONSTRAINT_VIOLATION)
-                .path(URI.create(request.getRequestURI()));
+        HttpErrorResponse.HttpErrorResponseBuilder errorResponseBuilder = errorResponseBuilder(HttpStatus.CONFLICT, HttpErrorCode.CONSTRAINT_VIOLATION, request.getRequestURI());
 
         String constraintName = getConstraintName(ex);
         Map<String, List<String>> errors = httpErrorMessageProperty.constraints().get(constraintName);
@@ -81,14 +67,22 @@ public class RestControllerExceptionHandler {
             errorResponseBuilder.error(httpErrorMessageProperty.unknownConstraintMessage());
         }
 
-        log.atWarn()
-                .addKeyValue(StructuredLogField.EVENT, StructuredLogEvent.CONSTRAINT_VIOLATION)
-                .addKeyValue(StructuredLogField.ERROR_CODE, HttpErrorCode.CONSTRAINT_VIOLATION)
+        warnLogBuilder(StructuredLogEvent.CONSTRAINT_VIOLATION, HttpErrorCode.CONSTRAINT_VIOLATION)
                 .addKeyValue(StructuredLogField.CONSTRAINT_NAME, constraintName)
                 .log("Constraint violation");
 
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(errorResponseBuilder.build());
+        return createResponseEntity(HttpStatus.CONFLICT, errorResponseBuilder.build());
+    }
+
+    @ExceptionHandler(ConstraintConflictException.class)
+    ResponseEntity<HttpErrorResponse> handleConstraintConflictException(ConstraintConflictException ex, HttpServletRequest request) {
+        HttpErrorResponse.HttpErrorResponseBuilder errorResponseBuilder = errorResponseBuilder(HttpStatus.CONFLICT, HttpErrorCode.CONSTRAINT_VIOLATION, request.getRequestURI())
+                .error(ex.getMessage());
+
+        warnLogBuilder(StructuredLogEvent.CONSTRAINT_VIOLATION, HttpErrorCode.CONSTRAINT_VIOLATION)
+                .log(ex.getMessage());
+
+        return createResponseEntity(HttpStatus.CONFLICT, errorResponseBuilder.build());
     }
 
     private String getConstraintName(DataIntegrityViolationException ex) {
@@ -102,157 +96,130 @@ public class RestControllerExceptionHandler {
 
     @ExceptionHandler(OptimisticLockValidationException.class)
     ResponseEntity<HttpErrorResponse> handleOptimisticLockValidationException(OptimisticLockValidationException ex, HttpServletRequest request) {
-        HttpErrorResponse.HttpErrorResponseBuilder errorResponseBuilder = HttpErrorResponse.builder()
-                .timestamp(Instant.now())
-                .status(HttpStatus.CONFLICT.value())
-                .errorCode(HttpErrorCode.OPTIMISTIC_LOCK_ERROR)
-                .error(ex.getMessage())
-                .path(URI.create(request.getRequestURI()));
+        HttpErrorResponse.HttpErrorResponseBuilder errorResponseBuilder = errorResponseBuilder(HttpStatus.CONFLICT, HttpErrorCode.OPTIMISTIC_LOCK_ERROR, request.getRequestURI())
+                .error(ex.getMessage());
 
-        logOptimisticLockError(ex.getMessage());
-
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(errorResponseBuilder.build());
-    }
-
-    private void logOptimisticLockError(String error) {
-        log.atWarn()
-                .addKeyValue(StructuredLogField.EVENT, StructuredLogEvent.OPTIMISTIC_LOCK_ERROR)
-                .addKeyValue(StructuredLogField.ERROR_CODE, HttpErrorCode.OPTIMISTIC_LOCK_ERROR)
-                .addKeyValue(StructuredLogField.ERRORS, error)
+        warnLogBuilder(StructuredLogEvent.OPTIMISTIC_LOCK_ERROR, HttpErrorCode.OPTIMISTIC_LOCK_ERROR)
+                .addKeyValue(StructuredLogField.ERROR, ex.getMessage())
                 .log("Optimistic lock error");
+
+        return createResponseEntity(HttpStatus.CONFLICT, errorResponseBuilder.build());
     }
 
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
     ResponseEntity<HttpErrorResponse> handleObjectOptimisticLockingFailure(ObjectOptimisticLockingFailureException ex, HttpServletRequest request) {
-        HttpErrorResponse.HttpErrorResponseBuilder errorResponseBuilder = HttpErrorResponse.builder()
-                .timestamp(Instant.now())
-                .status(HttpStatus.CONFLICT.value())
-                .errorCode(HttpErrorCode.OPTIMISTIC_LOCK_ERROR)
-                .error("Optimistic lock error")
-                .path(URI.create(request.getRequestURI()));
+        HttpErrorResponse.HttpErrorResponseBuilder errorResponseBuilder = errorResponseBuilder(HttpStatus.CONFLICT, HttpErrorCode.OPTIMISTIC_LOCK_ERROR, request.getRequestURI())
+                .error("Optimistic lock error");
 
-        logOptimisticLockError(ex.getMessage());
+        warnLogBuilder(StructuredLogEvent.OPTIMISTIC_LOCK_ERROR, HttpErrorCode.OPTIMISTIC_LOCK_ERROR)
+                .addKeyValue(StructuredLogField.ERROR, ex.getMessage())
+                .log("Optimistic lock error");
 
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(errorResponseBuilder.build());
+        return createResponseEntity(HttpStatus.CONFLICT, errorResponseBuilder.build());
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
     ResponseEntity<HttpErrorResponse> handleNoResourceFoundException(NoResourceFoundException ex, HttpServletRequest request) {
-        HttpErrorResponse httpErrorResponse = HttpErrorResponse.builder()
-                .timestamp(Instant.now())
-                .status(HttpStatus.NOT_FOUND.value())
-                .errorCode(HttpErrorCode.RESOURCE_NOT_FOUND)
+        HttpErrorResponse httpErrorResponse = errorResponseBuilder(HttpStatus.NOT_FOUND, HttpErrorCode.RESOURCE_NOT_FOUND, request.getRequestURI())
                 .error("Resource not found")
-                .path(URI.create(request.getRequestURI()))
                 .build();
 
-        log.atWarn()
-                .addKeyValue(StructuredLogField.EVENT, StructuredLogEvent.RESOURCE_NOT_FOUND)
-                .addKeyValue(StructuredLogField.ERROR_CODE, HttpErrorCode.RESOURCE_NOT_FOUND)
+        warnLogBuilder(StructuredLogEvent.RESOURCE_NOT_FOUND, HttpErrorCode.RESOURCE_NOT_FOUND)
+                .addKeyValue(StructuredLogField.ERROR, ex.getMessage())
                 .log("Resource not found");
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(httpErrorResponse);
+        return createResponseEntity(HttpStatus.NOT_FOUND, httpErrorResponse);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     ResponseEntity<HttpErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex, HttpServletRequest request) {
         String errorMessage = ex.getMostSpecificCause().getMessage();
-        HttpErrorResponse httpErrorResponse = HttpErrorResponse.builder()
-                .timestamp(Instant.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .errorCode(HttpErrorCode.JSON_PARSE_ERROR)
-                .error(errorMessage)
-                .path(URI.create(request.getRequestURI()))
+        HttpErrorResponse httpErrorResponse = errorResponseBuilder(HttpStatus.BAD_REQUEST, HttpErrorCode.JSON_PARSE_ERROR, request.getRequestURI())
+                .error("Malformed JSON request")
                 .build();
 
-        log.atWarn()
-                .addKeyValue(StructuredLogField.EVENT, StructuredLogEvent.JSON_PARSE_ERROR)
-                .addKeyValue(StructuredLogField.ERROR_CODE, HttpErrorCode.JSON_PARSE_ERROR)
-                .addKeyValue(StructuredLogField.ERRORS, errorMessage)
+        warnLogBuilder(StructuredLogEvent.JSON_PARSE_ERROR, HttpErrorCode.JSON_PARSE_ERROR)
+                .addKeyValue(StructuredLogField.ERROR, errorMessage)
                 .log("JSON parse error");
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(httpErrorResponse);
+        return createResponseEntity(HttpStatus.BAD_REQUEST, httpErrorResponse);
     }
 
     @ExceptionHandler(BadRequestException.class)
     ResponseEntity<HttpErrorResponse> handleBadRequestException(BadRequestException ex, HttpServletRequest request) {
-        HttpErrorResponse httpErrorResponse = HttpErrorResponse.builder()
-                .timestamp(Instant.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .errorCode(HttpErrorCode.REQUEST_VALIDATION_FAILED)
+        HttpErrorResponse httpErrorResponse = errorResponseBuilder(HttpStatus.BAD_REQUEST, HttpErrorCode.REQUEST_VALIDATION_FAILED, request.getRequestURI())
                 .error(ex.getMessage())
-                .path(URI.create(request.getRequestURI()))
                 .build();
 
-        logRequestValidationFailed(ex.getMessage());
+        warnLogBuilder(StructuredLogEvent.REQUEST_VALIDATION_FAILED, HttpErrorCode.REQUEST_VALIDATION_FAILED)
+                .addKeyValue(StructuredLogField.ERROR, ex.getMessage())
+                .log("Request validation failed");
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(httpErrorResponse);
+        return createResponseEntity(HttpStatus.BAD_REQUEST, httpErrorResponse);
     }
 
     @ExceptionHandler(NotFoundException.class)
     ResponseEntity<HttpErrorResponse> handleNotFoundException(NotFoundException ex, HttpServletRequest request) {
-        HttpErrorResponse httpErrorResponse = HttpErrorResponse.builder()
-                .timestamp(Instant.now())
-                .status(HttpStatus.NOT_FOUND.value())
-                .errorCode(HttpErrorCode.RESOURCE_NOT_FOUND)
+        HttpErrorResponse httpErrorResponse = errorResponseBuilder(HttpStatus.NOT_FOUND, HttpErrorCode.RESOURCE_NOT_FOUND, request.getRequestURI())
                 .error(ex.getMessage())
-                .path(URI.create(request.getRequestURI()))
                 .build();
 
-        log.atWarn()
-                .addKeyValue(StructuredLogField.EVENT, StructuredLogEvent.RESOURCE_NOT_FOUND)
-                .addKeyValue(StructuredLogField.ERROR_CODE, HttpErrorCode.RESOURCE_NOT_FOUND)
-                .addKeyValue(StructuredLogField.ERRORS, ex.getMessage())
+        warnLogBuilder(StructuredLogEvent.RESOURCE_NOT_FOUND, HttpErrorCode.RESOURCE_NOT_FOUND)
+                .addKeyValue(StructuredLogField.ERROR, ex.getMessage())
                 .log("Resource not found");
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(httpErrorResponse);
+        return createResponseEntity(HttpStatus.NOT_FOUND, httpErrorResponse);
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
     ResponseEntity<HttpErrorResponse> handleMissingServletRequestParameterException(MissingServletRequestParameterException ex, HttpServletRequest request) {
-        HttpErrorResponse httpErrorResponse = HttpErrorResponse.builder()
-                .timestamp(Instant.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .errorCode(HttpErrorCode.MISSING_REQUEST_PARAMETER)
-                .error(ex.getMessage())
-                .path(URI.create(request.getRequestURI()))
+        HttpErrorResponse httpErrorResponse = errorResponseBuilder(HttpStatus.BAD_REQUEST, HttpErrorCode.MISSING_REQUEST_PARAMETER, request.getRequestURI())
+                .error("Missing request parameter: " + ex.getParameterName())
                 .build();
 
-        log.atWarn()
-                .addKeyValue(StructuredLogField.EVENT, StructuredLogEvent.MISSING_REQUEST_PARAMETER)
-                .addKeyValue(StructuredLogField.ERROR_CODE, HttpErrorCode.MISSING_REQUEST_PARAMETER)
-                .addKeyValue(StructuredLogField.ERRORS, ex.getMessage())
+        warnLogBuilder(StructuredLogEvent.MISSING_REQUEST_PARAMETER, HttpErrorCode.MISSING_REQUEST_PARAMETER)
+                .addKeyValue(StructuredLogField.ERROR, ex.getMessage())
                 .setCause(ex)
                 .log("Missing request parameter");
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(httpErrorResponse);
+        return createResponseEntity(HttpStatus.BAD_REQUEST, httpErrorResponse);
     }
 
     @ExceptionHandler(Exception.class)
     ResponseEntity<HttpErrorResponse> handleUnexpectedException(Exception ex, HttpServletRequest request) {
-        HttpErrorResponse errorResponseBuilder = HttpErrorResponse.builder()
-                .timestamp(Instant.now())
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .errorCode(HttpErrorCode.UNEXPECTED_ERROR)
+        HttpErrorResponse errorResponse = errorResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR, HttpErrorCode.UNEXPECTED_ERROR, request.getRequestURI())
                 .error("Internal server error")
-                .path(URI.create(request.getRequestURI()))
                 .build();
 
-        log.atError()
-                .addKeyValue(StructuredLogField.EVENT, StructuredLogEvent.UNEXPECTED_ERROR)
-                .addKeyValue(StructuredLogField.ERROR_CODE, HttpErrorCode.UNEXPECTED_ERROR)
+        errorLogBuilder(StructuredLogEvent.UNEXPECTED_ERROR, HttpErrorCode.UNEXPECTED_ERROR)
                 .setCause(ex)
                 .log("Internal server error");
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(errorResponseBuilder);
+        return createResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, errorResponse);
     }
 
+    private HttpErrorResponse.HttpErrorResponseBuilder errorResponseBuilder(HttpStatus status, HttpErrorCode errorCode, String path) {
+        return HttpErrorResponse.builder()
+                .timestamp(Instant.now())
+                .status(status.value())
+                .errorCode(errorCode)
+                .path(URI.create(path));
+    }
+
+    private LoggingEventBuilder errorLogBuilder(String event, HttpErrorCode errorCode) {
+        return log.atError()
+                .addKeyValue(StructuredLogField.EVENT, event)
+                .addKeyValue(StructuredLogField.ERROR_CODE, errorCode);
+    }
+
+    private LoggingEventBuilder warnLogBuilder(String event, HttpErrorCode errorCode) {
+        return log.atWarn()
+                .addKeyValue(StructuredLogField.EVENT, event)
+                .addKeyValue(StructuredLogField.ERROR_CODE, errorCode);
+    }
+
+    private ResponseEntity<HttpErrorResponse> createResponseEntity(HttpStatus status, HttpErrorResponse errorResponse) {
+        return ResponseEntity.status(status)
+                .body(errorResponse);
+    }
 }

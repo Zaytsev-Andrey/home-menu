@@ -12,5 +12,6 @@ public final class StructuredLogField {
     public static final String PATH = "path";
     public static final String CONSTRAINT_NAME = "constraintName";
     public static final String ERRORS = "errors";
+    public static final String ERROR = "error";
 
 }

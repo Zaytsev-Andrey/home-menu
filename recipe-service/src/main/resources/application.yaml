@@ -60,6 +60,8 @@ app:
         title: must be unique
       uc_recipe_ingredient_recipe_ingredient:
         ingredient: ingredient already exists in recipe
+      fk_recipe_ingredient_on_ingredient:
+        ingredient_id: Recipe is using ingredient
       chk_recipe_ingredient_quantity_positive:
         quantity: must be positive
     unknown-constraint-message: Constraint violation error
