@@ -27,6 +27,19 @@ services:
       timeout: 5s
       retries: 20
 
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.19.1
+    container_name: postgres-exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgres:password@postgres:5432/recipe_service_db?sslmode=disable"
+    ports:
+      - "9187:9187"
+    networks:
+      - home-menu
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   redis:
     image: redis:7.2
     container_name: redis
@@ -44,6 +57,49 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.83.0
+    container_name: redis-exporter
+    environment:
+      REDIS_ADDR: "redis://redis:6379"
+    ports:
+      - "9121:9121"
+    networks:
+      - home-menu
+    depends_on:
+      - redis
+
+  recipe-service:
+    deploy:
+      replicas: ${DB_REPLICAS:-1}
+    build:
+      context: .
+      dockerfile: recipe-service/Dockerfile
+    container_name: recipe-service
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      alloy:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/recipe_service_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_DATA_REDIS_HOST: redis
+    ports:
+      - "8080:8080"
+    networks:
+      - home-menu
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q -O - http://localhost:8080/actuator/health || exit 1" ]
+      interval: 15s
+      timeout: 5s
+      retries: 20
 
   loki:
     image: grafana/loki:3.5.0
@@ -82,20 +138,42 @@ services:
       timeout: 5s
       retries: 10
 
-  vmagent:
-    image: victoriametrics/vmagent:v1.103.0
-    container_name: vmagent
-    restart: unless-stopped
-    depends_on:
-      victoriametrics:
-        condition: service_healthy
-    command:
-      - "-promscrape.config=/etc/prometheus/prometheus.yaml"
-      - "-remoteWrite.url=http://victoriametrics:8428/api/v1/write"
+  tempo:
+    image: grafana/tempo:main-684b357
+    container_name: tempo
+    command: [ "-config.file=/etc/tempo/tempo-config.yaml" ]
     volumes:
-      - ./docker/vmagent/config/prometheus.yaml:/etc/prometheus/prometheus.yaml
+      - ./docker/tempo/config/tempo-config.yaml:/etc/tempo/tempo-config.yaml:ro
+      - tempo-data:/var/tempo
+    ports:
+      - "3200:3200"
     networks:
       - home-menu
+
+  alloy:
+    image: grafana/alloy:v1.16.0
+    container_name: alloy
+    user: root
+    ports:
+      - "9080:9080"
+      - "4317:4317"
+    volumes:
+      - ./docker/alloy/config/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:9080
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    networks:
+      - home-menu
+    depends_on:
+      loki:
+        condition: service_healthy
+      victoriametrics:
+        condition: service_started
+      tempo:
+        condition: service_started
 
   grafana:
     image: grafana/grafana:12.3
@@ -128,6 +206,7 @@ volumes:
   redis_data:
   loki_data:
   victoriametrics_data:
+  tempo-data:
   grafana_data:
 
 networks:

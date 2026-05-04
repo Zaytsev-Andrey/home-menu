@@ -4,7 +4,7 @@ Accept: application/json
 X-Request-ID: 18d39335-e5a9-4b7f-97d9-a4a03315a000
 
 ### Find Ingredient by ID
-GET http://localhost:8080/api/v1/ingredients/a8cdfb13-cfef-48bb-ae4e-1da8868215b8
+GET http://localhost:8080/api/v1/ingredients/c89811e9-11ec-407e-bd5f-02d4269bb9b0
 Accept: application/json
 X-Request-ID: 18d39335-e5a9-4b7f-97d9-a4a03315a001
 

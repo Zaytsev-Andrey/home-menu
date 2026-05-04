@@ -3,26 +3,20 @@ spring:
     name: "${name}"
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/recipe_service_db
-    username: postgres
-    password: password
     hikari:
       auto-commit: false
-      minimum-idle: 5
+      minimum-idle: 20
       maximum-pool-size: 20
 
   jpa:
     properties:
+      hibernate.generate_statistics: true
       hibernate.connection.provider_disables_autocommit: true
 
   data:
     web:
       pageable:
         max-page-size: 200
-
-    redis:
-      host: localhost
-      port: 6379
 
   cache:
     type: redis
@@ -41,8 +35,29 @@ management:
   endpoint:
     health:
       show-details: always
+  otlp:
+    metrics:
+      export:
+        enabled: false    # you already use Prometheus pull for metrics
+  tracing:
+    sampling:
+      probability: 1.0
+    export:
+      enabled: true
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: "http://alloy:4317"
+          transport: grpc
+  observations:
+    annotations:
+      enabled: true
 
 logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
   structured:
     format:
       console: ecs

@@ -3,11 +3,11 @@ spring:
     name: "${name}"
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/recipe_service_db
+    url: jdbc:postgresql://postgres:5432/recipe_service_db
     username: postgres
     password: password
 
   data:
     redis:
-      host: localhost
+      host: redis
       port: 6379
