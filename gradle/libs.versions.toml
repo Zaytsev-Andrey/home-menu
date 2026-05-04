@@ -3,14 +3,14 @@ springframework-boot = '4.0.3'
 dependency-management = '1.1.7'
 mapstruct = '1.6.3'
 lombok-mapstruct-binding = '0.2.0'
-loki-logback-appender = '2.0.3'
 testcontainers-postgresql = '1.21.4'
-jooq-codegen-gradle = '3.20.11'
+jooq = '3.19.30'
+datasource-micrometer = '2.2.1'
 
 [plugins]
 springframework-boot = { id = 'org.springframework.boot', version.ref = 'springframework-boot' }
 dependency-management = { id = 'io.spring.dependency-management', version.ref = 'dependency-management' }
-jooq-codegen-gradle = { id = "org.jooq.jooq-codegen-gradle", version.ref = 'jooq-codegen-gradle' }
+jooq-codegen-gradle = { id = "org.jooq.jooq-codegen-gradle", version.ref = 'jooq' }
 
 [libraries]
 spring-boot-starter-actuator = { module = 'org.springframework.boot:spring-boot-starter-actuator' }
@@ -18,7 +18,9 @@ spring-boot-starter-webmvc = { module = 'org.springframework.boot:spring-boot-st
 spring-boot-starter-validation = { module = 'org.springframework.boot:spring-boot-starter-validation' }
 spring-boot-starter-data-jpa = { module = 'org.springframework.boot:spring-boot-starter-data-jpa' }
 spring-boot-starter-jooq = { module = 'org.springframework.boot:spring-boot-starter-jooq' }
+jooq-meta = { module = 'org.jooq:jooq-meta', version.ref = 'jooq' }
 spring-boot-starter-liquibase = { module = 'org.springframework.boot:spring-boot-starter-liquibase'}
+liquibase-core = { module = 'org.liquibase:liquibase-core' }
 postgresql = { module = 'org.postgresql:postgresql' }
 spring-boot-starter-cache = { module = 'org.springframework.boot:spring-boot-starter-cache' }
 spring-boot-starter-data-redis = { module = 'org.springframework.boot:spring-boot-starter-data-redis' }
@@ -26,7 +28,6 @@ mapstruct = { module = 'org.mapstruct:mapstruct', version.ref = 'mapstruct' }
 mapstruct-processor = { module = 'org.mapstruct:mapstruct-processor', version.ref = 'mapstruct' }
 lombok = { module = 'org.projectlombok:lombok' }
 lombok-mapstruct-binding = { module = 'org.projectlombok:lombok-mapstruct-binding', version.ref = 'lombok-mapstruct-binding' }
-loki-logback-appender = { module = 'com.github.loki4j:loki-logback-appender', version.ref = 'loki-logback-appender' }
 testcontainers-postgresql = { module = 'org.testcontainers:postgresql', version.ref = 'testcontainers-postgresql' }
 spring-boot-starter-actuator-test = { module = 'org.springframework.boot:spring-boot-starter-actuator-test' }
 spring-boot-starter-data-jpa-test = { module = 'org.springframework.boot:spring-boot-starter-data-jpa-test' }
@@ -36,3 +37,5 @@ spring-boot-starter-data-redis-test = { module = 'org.springframework.boot:sprin
 spring-boot-starter-webmvc-test = { module = 'org.springframework.boot:spring-boot-starter-webmvc-test' }
 junit-platform-launcher = { module = 'org.junit.platform:junit-platform-launcher' }
 micrometer-registry-prometheus = { module = 'io.micrometer:micrometer-registry-prometheus' }
+spring-boot-starter-opentelemetry = { module = 'org.springframework.boot:spring-boot-starter-opentelemetry' }
+datasource-micrometer-spring-boot = { module = 'net.ttddyy.observation:datasource-micrometer-spring-boot', version.ref = 'datasource-micrometer' }

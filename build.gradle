@@ -1,6 +1,17 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.testcontainers:postgresql:1.21.4'
+        classpath 'org.liquibase:liquibase-core:4.31.1'
+        classpath 'org.postgresql:postgresql:42.7.5'
+    }
+}
+
 plugins {
     alias(libs.plugins.springframework.boot) apply false
-    alias(libs.plugins.jooq.codegen.gradle)
+    alias(libs.plugins.jooq.codegen.gradle) apply false
 }
 
 subprojects {
@@ -26,8 +37,6 @@ project(":recipe-service") {
     apply plugin: libs.plugins.dependency.management.get().pluginId
     apply plugin: libs.plugins.jooq.codegen.gradle.get().pluginId
 
-    ext['jooq.version'] = libs.versions.jooq.codegen.gradle.get()
-
     java {
         toolchain {
             languageVersion = JavaLanguageVersion.of(25)
@@ -44,7 +53,9 @@ project(":recipe-service") {
         implementation libs.spring.boot.starter.cache
         implementation libs.spring.boot.starter.data.redis
         implementation libs.mapstruct
-        implementation libs.loki.logback.appender
+        implementation libs.spring.boot.starter.opentelemetry
+        implementation libs.datasource.micrometer.spring.boot
+
 
         compileOnly libs.lombok
 
@@ -69,11 +80,11 @@ project(":recipe-service") {
 
         testAnnotationProcessor libs.lombok
 
+        jooqCodegen libs.jooq.meta
         jooqCodegen libs.postgresql
-    }
+        jooqCodegen libs.testcontainers.postgresql
+        jooqCodegen libs.liquibase.core
 
-    tasks.named('compileJava') {
-        dependsOn 'jooqCodegen'
     }
 
     tasks.named('test') {
@@ -91,31 +102,72 @@ project(":recipe-service") {
     jooq {
         configuration {
             jdbc {
-                driver = 'org.postgresql.Driver'
-                url = 'jdbc:postgresql://localhost:5432/recipe_service_db'
-                user = 'postgres'
-                password = 'password'
+                url = 'jdbc:postgresql://placeholder:5432/db'
+                user = 'placeholder'
+                password = 'placeholder'
             }
             generator {
-                name = 'org.jooq.codegen.DefaultGenerator'
                 database {
                     name = 'org.jooq.meta.postgres.PostgresDatabase'
                     inputSchema = 'public'
-                    excludes = 'databasechangelog|databasechangeloglock'
                 }
                 target {
                     packageName = 'ru.homemenu.recipeservice.jooq'
-                    directory = "${buildDir}/generated-src/jooq/main"
+                    directory = 'src/generated/jooq'
                 }
             }
         }
     }
 
+    tasks.named('jooqCodegen') {
+        doFirst {
+            def postgres = new org.testcontainers.containers.PostgreSQLContainer<>('postgres:17-alpine')
+                    .withDatabaseName('recipe_service_db')
+                    .withUsername('postgres')
+                    .withPassword('password')
+            postgres.start()
+
+            def driver = new org.postgresql.Driver()
+            def props = new java.util.Properties()
+            props.setProperty('user', postgres.username)
+            props.setProperty('password', postgres.password)
+            def conn = driver.connect(postgres.jdbcUrl, props)
+
+            def database = liquibase.database.DatabaseFactory.instance
+                    .findCorrectDatabaseImplementation(
+                            new liquibase.database.jvm.JdbcConnection(conn)
+                    )
+            def liquibaseInstance = new liquibase.Liquibase(
+                    'db/changelog/db.changelog-master.yaml',
+                    new liquibase.resource.DirectoryResourceAccessor(
+                            file("${projectDir}/src/main/resources")
+                    ),
+                    database
+            )
+            liquibaseInstance.update('')
+            database.close()
+
+            jooq {
+                configuration {
+                    jdbc {
+                        url = postgres.jdbcUrl
+                        user = postgres.username
+                        password = postgres.password
+                    }
+                }
+            }
+
+            project.ext.testcontainer = postgres
+        }
+
+        doLast {
+            project.ext.testcontainer.stop()
+        }
+    }
+
     sourceSets {
         main {
-            java {
-                srcDir "${buildDir}/generated-src/jooq/main"
-            }
+            java.srcDir("${projectDir}/src/generated/jooq")
         }
     }
 }
