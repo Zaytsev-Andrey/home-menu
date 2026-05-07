@@ -22,8 +22,9 @@ PUT http://localhost:8080/api/v1/ingredients/287b855b-588f-48d8-94e1-8fef49624a5
 Content-Type: application/json
 
 {
-    "version": 2,
-    "title": "Black Tea"
+    "version": 200,
+    "title": "Black Tea",
+    "type": "MEAT"
 }
 
 

@@ -1,0 +1,18 @@
+apply plugin: libs.plugins.springframework.boot.get().pluginId
+apply plugin: libs.plugins.dependency.management.get().pluginId
+
+dependencies {
+    implementation libs.spring.boot.starter.aspectj
+
+    compileOnly libs.lombok
+
+    annotationProcessor libs.lombok
+
+    testImplementation libs.test.spring.boot.starter.aspectj
+
+    testRuntimeOnly libs.junit.platform.launcher
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

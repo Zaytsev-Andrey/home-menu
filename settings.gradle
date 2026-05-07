@@ -1,3 +1,4 @@
 rootProject.name = 'home-menu'
 
 include 'recipe-service'
+include 'common-logging-starter'
