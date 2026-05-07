@@ -19,8 +19,8 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import ru.homemenu.recipeservice.config.property.HttpErrorMessageProperty;
 import ru.homemenu.recipeservice.dto.HttpErrorCode;
 import ru.homemenu.recipeservice.dto.HttpErrorResponse;
-import ru.homemenu.recipeservice.log.StructuredLogEvent;
-import ru.homemenu.recipeservice.log.StructuredLogField;
+import ru.homemenu.logging.structure.LogEvent;
+import ru.homemenu.logging.structure.LogField;
 
 import java.net.URI;
 import java.time.Instant;
@@ -48,8 +48,8 @@ public class RestControllerExceptionHandler {
                 .errors(errors)
                 .build();
 
-        warnLogBuilder(StructuredLogEvent.REQUEST_VALIDATION_FAILED, HttpErrorCode.REQUEST_VALIDATION_FAILED)
-                .addKeyValue(StructuredLogField.ERRORS, errors)
+        warnLogBuilder(LogEvent.REQUEST_VALIDATION_FAILED, HttpErrorCode.REQUEST_VALIDATION_FAILED)
+                .addKeyValue(LogField.ERRORS, errors)
                 .log("Request validation failed");
 
         return createResponseEntity(HttpStatus.BAD_REQUEST, httpErrorResponse);
@@ -67,8 +67,8 @@ public class RestControllerExceptionHandler {
             errorResponseBuilder.error(httpErrorMessageProperty.unknownConstraintMessage());
         }
 
-        warnLogBuilder(StructuredLogEvent.CONSTRAINT_VIOLATION, HttpErrorCode.CONSTRAINT_VIOLATION)
-                .addKeyValue(StructuredLogField.CONSTRAINT_NAME, constraintName)
+        warnLogBuilder(LogEvent.CONSTRAINT_VIOLATION, HttpErrorCode.CONSTRAINT_VIOLATION)
+                .addKeyValue(LogField.CONSTRAINT_NAME, constraintName)
                 .log("Constraint violation");
 
         return createResponseEntity(HttpStatus.CONFLICT, errorResponseBuilder.build());
@@ -79,7 +79,7 @@ public class RestControllerExceptionHandler {
         HttpErrorResponse.HttpErrorResponseBuilder errorResponseBuilder = errorResponseBuilder(HttpStatus.CONFLICT, HttpErrorCode.CONSTRAINT_VIOLATION, request.getRequestURI())
                 .error(ex.getMessage());
 
-        warnLogBuilder(StructuredLogEvent.CONSTRAINT_VIOLATION, HttpErrorCode.CONSTRAINT_VIOLATION)
+        warnLogBuilder(LogEvent.CONSTRAINT_VIOLATION, HttpErrorCode.CONSTRAINT_VIOLATION)
                 .log(ex.getMessage());
 
         return createResponseEntity(HttpStatus.CONFLICT, errorResponseBuilder.build());
@@ -99,8 +99,8 @@ public class RestControllerExceptionHandler {
         HttpErrorResponse.HttpErrorResponseBuilder errorResponseBuilder = errorResponseBuilder(HttpStatus.CONFLICT, HttpErrorCode.OPTIMISTIC_LOCK_ERROR, request.getRequestURI())
                 .error(ex.getMessage());
 
-        warnLogBuilder(StructuredLogEvent.OPTIMISTIC_LOCK_ERROR, HttpErrorCode.OPTIMISTIC_LOCK_ERROR)
-                .addKeyValue(StructuredLogField.ERROR, ex.getMessage())
+        warnLogBuilder(LogEvent.OPTIMISTIC_LOCK_ERROR, HttpErrorCode.OPTIMISTIC_LOCK_ERROR)
+                .addKeyValue(LogField.ERROR, ex.getMessage())
                 .log("Optimistic lock error");
 
         return createResponseEntity(HttpStatus.CONFLICT, errorResponseBuilder.build());
@@ -111,8 +111,8 @@ public class RestControllerExceptionHandler {
         HttpErrorResponse.HttpErrorResponseBuilder errorResponseBuilder = errorResponseBuilder(HttpStatus.CONFLICT, HttpErrorCode.OPTIMISTIC_LOCK_ERROR, request.getRequestURI())
                 .error("Optimistic lock error");
 
-        warnLogBuilder(StructuredLogEvent.OPTIMISTIC_LOCK_ERROR, HttpErrorCode.OPTIMISTIC_LOCK_ERROR)
-                .addKeyValue(StructuredLogField.ERROR, ex.getMessage())
+        warnLogBuilder(LogEvent.OPTIMISTIC_LOCK_ERROR, HttpErrorCode.OPTIMISTIC_LOCK_ERROR)
+                .addKeyValue(LogField.ERROR, ex.getMessage())
                 .log("Optimistic lock error");
 
         return createResponseEntity(HttpStatus.CONFLICT, errorResponseBuilder.build());
@@ -124,8 +124,8 @@ public class RestControllerExceptionHandler {
                 .error("Resource not found")
                 .build();
 
-        warnLogBuilder(StructuredLogEvent.RESOURCE_NOT_FOUND, HttpErrorCode.RESOURCE_NOT_FOUND)
-                .addKeyValue(StructuredLogField.ERROR, ex.getMessage())
+        warnLogBuilder(LogEvent.RESOURCE_NOT_FOUND, HttpErrorCode.RESOURCE_NOT_FOUND)
+                .addKeyValue(LogField.ERROR, ex.getMessage())
                 .log("Resource not found");
 
         return createResponseEntity(HttpStatus.NOT_FOUND, httpErrorResponse);
@@ -138,8 +138,8 @@ public class RestControllerExceptionHandler {
                 .error("Malformed JSON request")
                 .build();
 
-        warnLogBuilder(StructuredLogEvent.JSON_PARSE_ERROR, HttpErrorCode.JSON_PARSE_ERROR)
-                .addKeyValue(StructuredLogField.ERROR, errorMessage)
+        warnLogBuilder(LogEvent.JSON_PARSE_ERROR, HttpErrorCode.JSON_PARSE_ERROR)
+                .addKeyValue(LogField.ERROR, errorMessage)
                 .log("JSON parse error");
 
         return createResponseEntity(HttpStatus.BAD_REQUEST, httpErrorResponse);
@@ -151,8 +151,8 @@ public class RestControllerExceptionHandler {
                 .error(ex.getMessage())
                 .build();
 
-        warnLogBuilder(StructuredLogEvent.REQUEST_VALIDATION_FAILED, HttpErrorCode.REQUEST_VALIDATION_FAILED)
-                .addKeyValue(StructuredLogField.ERROR, ex.getMessage())
+        warnLogBuilder(LogEvent.REQUEST_VALIDATION_FAILED, HttpErrorCode.REQUEST_VALIDATION_FAILED)
+                .addKeyValue(LogField.ERROR, ex.getMessage())
                 .log("Request validation failed");
 
         return createResponseEntity(HttpStatus.BAD_REQUEST, httpErrorResponse);
@@ -164,8 +164,8 @@ public class RestControllerExceptionHandler {
                 .error(ex.getMessage())
                 .build();
 
-        warnLogBuilder(StructuredLogEvent.RESOURCE_NOT_FOUND, HttpErrorCode.RESOURCE_NOT_FOUND)
-                .addKeyValue(StructuredLogField.ERROR, ex.getMessage())
+        warnLogBuilder(LogEvent.RESOURCE_NOT_FOUND, HttpErrorCode.RESOURCE_NOT_FOUND)
+                .addKeyValue(LogField.ERROR, ex.getMessage())
                 .log("Resource not found");
 
         return createResponseEntity(HttpStatus.NOT_FOUND, httpErrorResponse);
@@ -177,8 +177,8 @@ public class RestControllerExceptionHandler {
                 .error("Missing request parameter: " + ex.getParameterName())
                 .build();
 
-        warnLogBuilder(StructuredLogEvent.MISSING_REQUEST_PARAMETER, HttpErrorCode.MISSING_REQUEST_PARAMETER)
-                .addKeyValue(StructuredLogField.ERROR, ex.getMessage())
+        warnLogBuilder(LogEvent.MISSING_REQUEST_PARAMETER, HttpErrorCode.MISSING_REQUEST_PARAMETER)
+                .addKeyValue(LogField.ERROR, ex.getMessage())
                 .setCause(ex)
                 .log("Missing request parameter");
 
@@ -191,7 +191,7 @@ public class RestControllerExceptionHandler {
                 .error("Internal server error")
                 .build();
 
-        errorLogBuilder(StructuredLogEvent.UNEXPECTED_ERROR, HttpErrorCode.UNEXPECTED_ERROR)
+        errorLogBuilder(LogEvent.UNEXPECTED_ERROR, HttpErrorCode.UNEXPECTED_ERROR)
                 .setCause(ex)
                 .log("Internal server error");
 
@@ -208,14 +208,14 @@ public class RestControllerExceptionHandler {
 
     private LoggingEventBuilder errorLogBuilder(String event, HttpErrorCode errorCode) {
         return log.atError()
-                .addKeyValue(StructuredLogField.EVENT, event)
-                .addKeyValue(StructuredLogField.ERROR_CODE, errorCode);
+                .addKeyValue(LogField.EVENT, event)
+                .addKeyValue(LogField.ERROR_CODE, errorCode);
     }
 
     private LoggingEventBuilder warnLogBuilder(String event, HttpErrorCode errorCode) {
         return log.atWarn()
-                .addKeyValue(StructuredLogField.EVENT, event)
-                .addKeyValue(StructuredLogField.ERROR_CODE, errorCode);
+                .addKeyValue(LogField.EVENT, event)
+                .addKeyValue(LogField.ERROR_CODE, errorCode);
     }
 
     private ResponseEntity<HttpErrorResponse> createResponseEntity(HttpStatus status, HttpErrorResponse errorResponse) {

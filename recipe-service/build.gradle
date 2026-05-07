@@ -1,0 +1,139 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.testcontainers:postgresql:1.21.4'
+        classpath 'org.liquibase:liquibase-core:4.31.1'
+        classpath 'org.postgresql:postgresql:42.7.5'
+    }
+}
+
+apply plugin: libs.plugins.springframework.boot.get().pluginId
+apply plugin: libs.plugins.dependency.management.get().pluginId
+apply plugin: libs.plugins.jooq.codegen.gradle.get().pluginId
+
+dependencies {
+    implementation libs.spring.boot.starter.actuator
+    implementation libs.spring.boot.starter.webmvc
+    implementation libs.spring.boot.starter.validation
+    implementation libs.spring.boot.starter.data.jpa
+    implementation libs.spring.boot.starter.jooq
+    implementation libs.spring.boot.starter.liquibase
+    implementation libs.spring.boot.starter.cache
+    implementation libs.spring.boot.starter.data.redis
+    implementation libs.mapstruct
+    implementation libs.spring.boot.starter.opentelemetry
+    implementation libs.datasource.micrometer.spring.boot
+
+    implementation project(":common-logging-starter")
+
+    compileOnly libs.lombok
+
+    runtimeOnly libs.postgresql
+    runtimeOnly libs.micrometer.registry.prometheus
+
+    annotationProcessor libs.mapstruct.processor
+    annotationProcessor libs.lombok
+    annotationProcessor libs.lombok.mapstruct.binding
+
+    testImplementation libs.testcontainers.postgresql
+    testImplementation libs.test.spring.boot.starter.actuator
+    testImplementation libs.test.spring.boot.starter.data.jpa
+    testImplementation libs.test.spring.boot.starter.jooq
+    testImplementation libs.test.spring.boot.starter.cache
+    testImplementation libs.test.spring.boot.starter.data.redis
+    testImplementation libs.test.spring.boot.starter.webmvc
+
+    testRuntimeOnly libs.junit.platform.launcher
+
+    testCompileOnly libs.lombok
+
+    testAnnotationProcessor libs.lombok
+
+    jooqCodegen libs.jooq.meta
+    jooqCodegen libs.postgresql
+    jooqCodegen libs.testcontainers.postgresql
+    jooqCodegen libs.liquibase.core
+
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+springBoot {
+    buildInfo()
+}
+
+jooq {
+    configuration {
+        jdbc {
+            url = 'jdbc:postgresql://placeholder:5432/db'
+            user = 'placeholder'
+            password = 'placeholder'
+        }
+        generator {
+            database {
+                name = 'org.jooq.meta.postgres.PostgresDatabase'
+                inputSchema = 'public'
+            }
+            target {
+                packageName = 'ru.homemenu.recipeservice.jooq'
+                directory = 'src/generated/jooq'
+            }
+        }
+    }
+}
+
+tasks.named('jooqCodegen') {
+    doFirst {
+        def postgres = new org.testcontainers.containers.PostgreSQLContainer<>('postgres:17-alpine')
+                .withDatabaseName('recipe_service_db')
+                .withUsername('postgres')
+                .withPassword('password')
+        postgres.start()
+
+        def driver = new org.postgresql.Driver()
+        def props = new java.util.Properties()
+        props.setProperty('user', postgres.username)
+        props.setProperty('password', postgres.password)
+        def conn = driver.connect(postgres.jdbcUrl, props)
+
+        def database = liquibase.database.DatabaseFactory.instance
+                .findCorrectDatabaseImplementation(
+                        new liquibase.database.jvm.JdbcConnection(conn)
+                )
+        def liquibaseInstance = new liquibase.Liquibase(
+                'db/changelog/db.changelog-master.yaml',
+                new liquibase.resource.DirectoryResourceAccessor(
+                        file("${projectDir}/src/main/resources")
+                ),
+                database
+        )
+        liquibaseInstance.update('')
+        database.close()
+
+        jooq {
+            configuration {
+                jdbc {
+                    url = postgres.jdbcUrl
+                    user = postgres.username
+                    password = postgres.password
+                }
+            }
+        }
+
+        project.ext.testcontainer = postgres
+    }
+
+    doLast {
+        project.ext.testcontainer.stop()
+    }
+}
+
+sourceSets {
+    main {
+        java.srcDir("${projectDir}/src/generated/jooq")
+    }
+}

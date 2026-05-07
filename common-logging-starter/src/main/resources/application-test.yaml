@@ -1,0 +1,4 @@
+app:
+  logging:
+    service:
+      enable-error: true

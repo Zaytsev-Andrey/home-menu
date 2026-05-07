@@ -24,17 +24,19 @@ liquibase-core = { module = 'org.liquibase:liquibase-core' }
 postgresql = { module = 'org.postgresql:postgresql' }
 spring-boot-starter-cache = { module = 'org.springframework.boot:spring-boot-starter-cache' }
 spring-boot-starter-data-redis = { module = 'org.springframework.boot:spring-boot-starter-data-redis' }
+spring-boot-starter-aspectj = { module = 'org.springframework.boot:spring-boot-starter-aspectj' }
 mapstruct = { module = 'org.mapstruct:mapstruct', version.ref = 'mapstruct' }
 mapstruct-processor = { module = 'org.mapstruct:mapstruct-processor', version.ref = 'mapstruct' }
 lombok = { module = 'org.projectlombok:lombok' }
 lombok-mapstruct-binding = { module = 'org.projectlombok:lombok-mapstruct-binding', version.ref = 'lombok-mapstruct-binding' }
 testcontainers-postgresql = { module = 'org.testcontainers:postgresql', version.ref = 'testcontainers-postgresql' }
-spring-boot-starter-actuator-test = { module = 'org.springframework.boot:spring-boot-starter-actuator-test' }
-spring-boot-starter-data-jpa-test = { module = 'org.springframework.boot:spring-boot-starter-data-jpa-test' }
-spring-boot-starter-jooq-test = { module = 'org.springframework.boot:spring-boot-starter-jooq-test' }
-spring-boot-starter-cache-test = { module = 'org.springframework.boot:spring-boot-starter-cache-test' }
-spring-boot-starter-data-redis-test = { module = 'org.springframework.boot:spring-boot-starter-data-redis-test' }
-spring-boot-starter-webmvc-test = { module = 'org.springframework.boot:spring-boot-starter-webmvc-test' }
+test-spring-boot-starter-actuator = { module = 'org.springframework.boot:spring-boot-starter-actuator-test' }
+test-spring-boot-starter-data-jpa = { module = 'org.springframework.boot:spring-boot-starter-data-jpa-test' }
+test-spring-boot-starter-jooq = { module = 'org.springframework.boot:spring-boot-starter-jooq-test' }
+test-spring-boot-starter-cache = { module = 'org.springframework.boot:spring-boot-starter-cache-test' }
+test-spring-boot-starter-data-redis = { module = 'org.springframework.boot:spring-boot-starter-data-redis-test' }
+test-spring-boot-starter-webmvc = { module = 'org.springframework.boot:spring-boot-starter-webmvc-test' }
+test-spring-boot-starter-aspectj = { module = 'org.springframework.boot:spring-boot-starter-aspectj-test' }
 junit-platform-launcher = { module = 'org.junit.platform:junit-platform-launcher' }
 micrometer-registry-prometheus = { module = 'io.micrometer:micrometer-registry-prometheus' }
 spring-boot-starter-opentelemetry = { module = 'org.springframework.boot:spring-boot-starter-opentelemetry' }

@@ -1,8 +1,8 @@
-package ru.homemenu.recipeservice.log;
+package ru.homemenu.logging.structure;
 
-public final class StructuredLogEvent {
+public final class LogEvent {
 
-    private StructuredLogEvent() {
+    private LogEvent() {
     }
 
     public static final String CONSTRAINT_VIOLATION = "constraint_violation";

@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import ru.homemenu.logging.structure.LogField;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -19,9 +20,8 @@ public class LoggingRequestContextFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
-            MDC.put("requestId", getRequestId(request));
-            MDC.put("method", request.getMethod());
-            MDC.put("uri", request.getRequestURI());
+            MDC.put(LogField.HTTP_METHOD, request.getMethod());
+            MDC.put(LogField.PATH, request.getRequestURI());
 
             filterChain.doFilter(request, response);
         } finally {
@@ -29,11 +29,4 @@ public class LoggingRequestContextFilter extends OncePerRequestFilter {
         }
     }
 
-    private String getRequestId(HttpServletRequest request) {
-        String requestId = request.getHeader(REQUEST_ID_HEADER);
-        if (requestId == null) {
-            requestId = UUID.randomUUID().toString();
-        }
-        return requestId;
-    }
 }
